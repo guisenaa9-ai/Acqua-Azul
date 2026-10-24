@@ -177,5 +177,9 @@ footer a { color: #fff; font-weight: 800; }
 .depoimentos { background: var(--espuma); padding: 96px 0; }
 .depoimento { margin: 0; background: #fff; border-radius: var(--raio); padding: 28px; display: flex; flex-direction: column; gap: 16px; }
 .depoimento blockquote { margin: 0; font-size: 18px; color: var(--texto); }
-.depoimento figcaption { display: flex; flex-direction: column; color: var(--abismo); }
-.depoimento figcaption span { color: var(--suave); font-size: 14px; }
+.depoimento figcaption { display: flex; align-items: center; gap: 12px; color: var(--abismo); }
+.depoimento figcaption > span:last-child { display: flex; flex-direction: column; }
+.depoimento figcaption span span { color: var(--suave); font-size: 14px; }
+.avatar { flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--mar); color: #fff; font: 800 22px "Baloo 2", sans-serif; }
+.depoimento:nth-child(3n+2) .avatar { background: var(--piscina); }
+.depoimento:nth-child(3n) .avatar { background: var(--abismo); }

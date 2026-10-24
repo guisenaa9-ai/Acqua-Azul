@@ -73,7 +73,7 @@ async function carregarConteudo() {
   }
   if (depoimentos.length) {
     document.getElementById("lista-depoimentos").innerHTML = depoimentos
-      .map((d) => `<figure class="depoimento"><blockquote>“${esc(d.texto)}”</blockquote><figcaption><b>${esc(d.nome)}</b>${d.relacao ? `<span>${esc(d.relacao)}</span>` : ""}</figcaption></figure>`)
+      .map((d) => `<figure class="depoimento"><blockquote>“${esc(d.texto)}”</blockquote><figcaption><span class="avatar" aria-hidden="true">${esc(d.nome.trim().charAt(0).toUpperCase())}</span><span><b>${esc(d.nome)}</b>${d.relacao ? `<span>${esc(d.relacao)}</span>` : ""}</span></figcaption></figure>`)
       .join("");
     document.getElementById("depoimentos").hidden = false;
   }
