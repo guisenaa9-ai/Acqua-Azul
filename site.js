@@ -37,11 +37,13 @@ async function api(consulta) {
 // Textos, história, aviso e fotos editados no painel. Se falhar, ficam os textos que já estão no HTML.
 async function carregarConteudo() {
   document.querySelectorAll("[data-mapa]").forEach((a) => (a.hidden = true));
-  const [conteudo, marcos, avisos, fotos] = await Promise.all([
+  const [conteudo, marcos, avisos, fotos, planos, depoimentos] = await Promise.all([
     api("conteudo?select=chave,valor"),
     api("marcos?select=ano,titulo,texto&order=ordem,id"),
     api("avisos?select=texto&order=criado_em.desc&limit=1"), // as regras do banco só devolvem avisos vigentes
-    api("fotos?select=caminho,legenda&order=ordem,id")
+    api("fotos?select=caminho,legenda&order=ordem,id"),
+    api("planos?select=nome,preco,descricao,destaque&order=ordem,id"),
+    api("depoimentos?select=nome,relacao,texto&order=ordem,id")
   ]);
   const c = Object.fromEntries(conteudo.map((x) => [x.chave, x.valor]));
   document.querySelectorAll("[data-conteudo]").forEach((el) => {
@@ -61,6 +63,19 @@ async function carregarConteudo() {
   if (avisos[0]) {
     aviso.textContent = avisos[0].texto;
     aviso.hidden = false;
+  }
+  if (planos.length) {
+    document.getElementById("lista-planos").innerHTML = planos
+      .map((p) => `<article class="plano${p.destaque ? " destaque" : ""}">${p.destaque ? '<span class="selo-plano">Mais escolhido</span>' : ""}<h3>${esc(p.nome)}</h3><p class="preco">${esc(p.preco)}</p>${p.descricao ? `<p>${esc(p.descricao)}</p>` : ""}<a class="btn btn-mar" href="#agendar">Agendar aula experimental</a></article>`)
+      .join("");
+    document.querySelector(".pagamento").hidden = !c.formas_pagamento || c.formas_pagamento.startsWith("[");
+    document.getElementById("planos").hidden = false;
+  }
+  if (depoimentos.length) {
+    document.getElementById("lista-depoimentos").innerHTML = depoimentos
+      .map((d) => `<figure class="depoimento"><blockquote>“${esc(d.texto)}”</blockquote><figcaption><b>${esc(d.nome)}</b>${d.relacao ? `<span>${esc(d.relacao)}</span>` : ""}</figcaption></figure>`)
+      .join("");
+    document.getElementById("depoimentos").hidden = false;
   }
   if (fotos.length) {
     document.getElementById("lista-fotos").innerHTML = fotos

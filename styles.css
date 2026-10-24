@@ -163,3 +163,19 @@ footer a { color: #fff; font-weight: 800; }
 .retorno { background: var(--espuma); border-radius: 12px; padding: 14px 16px; font-weight: 700; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
 .retorno.erro { background: #fdecea; color: var(--alerta); }
 .retorno .btn { padding: 10px 20px; }
+
+/* Planos e depoimentos */
+.planos { padding: 96px 0; }
+.plano { position: relative; background: #fff; border: 2px solid var(--espuma); border-radius: var(--raio); padding: 28px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.plano.destaque { border-color: var(--sol); box-shadow: 0 12px 32px rgba(6,36,90,.12); }
+.plano h3 { font-size: 24px; color: var(--abismo); }
+.plano .preco { font: 800 32px "Baloo 2", sans-serif; color: var(--mar); }
+.plano p { color: var(--suave); }
+.plano .btn { margin-top: auto; }
+.selo-plano { background: var(--sol); color: var(--abismo); font-weight: 800; font-size: 13px; padding: 4px 12px; border-radius: 999px; }
+.pagamento { text-align: center; margin-top: 28px; color: var(--suave); }
+.depoimentos { background: var(--espuma); padding: 96px 0; }
+.depoimento { margin: 0; background: #fff; border-radius: var(--raio); padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+.depoimento blockquote { margin: 0; font-size: 18px; color: var(--texto); }
+.depoimento figcaption { display: flex; flex-direction: column; color: var(--abismo); }
+.depoimento figcaption span { color: var(--suave); font-size: 14px; }

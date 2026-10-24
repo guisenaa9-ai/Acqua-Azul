@@ -5,6 +5,8 @@ const tela = (nome) => document.querySelector(`[data-tela="${nome}"]`);
 const urlFoto = (caminho) => `${supabaseUrl}/storage/v1/object/public/fotos/${caminho}`;
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const STATUS = [["novo", "Novo"], ["em_contato", "Em contato"], ["agendado", "Aula agendada"], ["matriculou", "Matriculou"], ["desistiu", "Desistiu"]];
+let papel = null;
+const ABAS_RECEPCAO = ["resumo", "pedidos", "turmas"];
 const telefoneBonito = (t) => (t.length >= 12 ? `(${t.slice(2, 4)}) ${t.slice(4, -4)}-${t.slice(-4)}` : t);
 
 // Campos de cada tabela editável. t: tipo do campo; r: rótulo.
@@ -67,6 +69,31 @@ const TABELAS = {
       { n: "ativo", r: "Aparece no site", t: "checkbox" }
     ]
   },
+  planos: {
+    ordem: [["ordem"], ["id"]],
+    novo: { ordem: 0, ativo: true, destaque: false },
+    nome: (x) => x.nome,
+    campos: [
+      { n: "nome", r: "Nome do plano", max: 60, req: true, ph: "ex: 2x por semana" },
+      { n: "preco", r: "Preço", max: 40, req: true, ph: "ex: R$ 250/mês" },
+      { n: "ordem", r: "Ordem", t: "number" },
+      { n: "descricao", r: "Descrição (opcional)", t: "textarea", max: 400, largo: true, ph: "ex: Aulas de 45 minutos, turmas de até 8 crianças" },
+      { n: "destaque", r: "Destacar como \"Mais escolhido\"", t: "checkbox" },
+      { n: "ativo", r: "Aparece no site", t: "checkbox" }
+    ]
+  },
+  depoimentos: {
+    ordem: [["ordem"], ["id"]],
+    novo: { ordem: 0, ativo: true },
+    nome: (x) => `o depoimento de ${x.nome}`,
+    campos: [
+      { n: "nome", r: "Nome", max: 60, req: true, ph: "ex: Juliana" },
+      { n: "relacao", r: "Quem é (opcional)", max: 80, ph: "ex: mãe da Helena, 3 anos" },
+      { n: "ordem", r: "Ordem", t: "number" },
+      { n: "texto", r: "Depoimento", t: "textarea", max: 500, req: true, largo: true },
+      { n: "ativo", r: "Aparece no site", t: "checkbox" }
+    ]
+  },
   fotos: {
     ordem: [["ordem"], ["id"]],
     nome: (x) => x.legenda || "esta foto",
@@ -86,6 +113,7 @@ const TEXTOS = [
   { chave: "idade_inicial", r: "Idade mínima para começar", ph: "ex: 6 meses", max: 30 },
   { chave: "seguidores", r: "Seguidores no Instagram", ph: "ex: 23 mil", max: 30 },
   { chave: "horario", r: "Dias e horário de funcionamento", ph: "ex: Seg a Sáb, das 7h às 20h", max: 120 },
+  { chave: "formas_pagamento", r: "Formas de pagamento", ph: "ex: Pix, cartão de crédito e boleto", max: 200 },
   { chave: "end_cidade_nova", r: "Endereço da unidade Cidade Nova", t: "textarea", max: 200 },
   { chave: "end_campos_eliseos", r: "Endereço da unidade Campos Elíseos", t: "textarea", max: 200 }
 ];
@@ -181,6 +209,7 @@ function cartao(tabela, item) {
   const botoes = document.createElement("div");
   botoes.className = "botoes";
   botoes.append(botao("Salvar", "btn-mar", "salvar"), botao("Apagar", "btn-apagar", "apagar"), status);
+  if (tabela === "turmas" && papel !== "dono") botoes.querySelector('[data-acao="apagar"]').remove(); // recepção não apaga turma
   form.append(campos, botoes);
 
   const pintar = () => {
@@ -364,10 +393,74 @@ async function carregarResumo() {
 }
 
 // Navegação entre abas
-const CARREGAR = { resumo: carregarResumo, pedidos: () => carregarLista("pedidos"), turmas: () => carregarLista("turmas"), textos: carregarTextos, marcos: () => carregarLista("marcos"), avisos: () => carregarLista("avisos"), fotos: () => carregarLista("fotos") };
+// Usuários do painel (só dono): criar conta exige a chave de serviço, então passa pela função "usuarios"
+async function chamarUsuarios(corpo) {
+  const { data } = await sb.auth.getSession();
+  const r = await fetch(`${supabaseUrl}/functions/v1/usuarios`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: supabaseKey, Authorization: `Bearer ${data.session?.access_token}` },
+    body: JSON.stringify(corpo)
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.erro || "Não foi possível completar. Tente de novo.");
+  return j;
+}
+
+const PAPEL_NOME = { recepcao: "Recepção (pedidos e turmas)", dono: "Dono (tudo)" };
+async function carregarUsuarios() {
+  const erro = tela("usuarios").querySelector(".erro");
+  erro.textContent = "";
+  try {
+    const lista = await chamarUsuarios({ acao: "listar" });
+    $("lista-usuarios").innerHTML = lista.map((u) => `<div class="admin-cartao" data-id="${esc(u.id)}">
+      <div class="info"><h3>${esc(u.email)}${u.eu ? " (você)" : ""}</h3>
+        <p class="quando">Último acesso: ${u.ultimo_acesso ? new Date(u.ultimo_acesso).toLocaleString("pt-BR", { timeZone: "America/Manaus", dateStyle: "short", timeStyle: "short" }) : "nunca entrou"}</p></div>
+      <div class="campos"><label>Papel<select data-acao="papel"${u.eu ? " disabled" : ""}>${Object.entries(PAPEL_NOME).map(([v, r]) => `<option value="${v}"${v === u.papel ? " selected" : ""}>${r}</option>`).join("")}</select></label></div>
+      <div class="botoes">${u.eu ? "" : '<button type="button" class="btn btn-apagar" data-acao="remover">Remover acesso</button>'}<span class="status" role="status"></span></div>
+    </div>`).join("");
+  } catch (e) {
+    erro.textContent = e.message;
+  }
+}
+$("lista-usuarios").addEventListener("change", async (e) => {
+  if (e.target.dataset.acao !== "papel") return;
+  const c = e.target.closest("[data-id]");
+  try {
+    await chamarUsuarios({ acao: "papel", user_id: c.dataset.id, papel: e.target.value });
+    avisar(c.querySelector(".status"), "Papel alterado!");
+  } catch (err) {
+    avisar(c.querySelector(".status"), err.message);
+  }
+});
+$("lista-usuarios").addEventListener("click", async (e) => {
+  if (e.target.dataset.acao !== "remover") return;
+  const c = e.target.closest("[data-id]");
+  if (!confirm(`Remover o acesso de ${c.querySelector("h3").textContent}? A conta será apagada.`)) return;
+  try {
+    await chamarUsuarios({ acao: "remover", user_id: c.dataset.id });
+    c.remove();
+  } catch (err) {
+    avisar(c.querySelector(".status"), err.message);
+  }
+});
+$("form-usuario").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const d = new FormData(e.target);
+  try {
+    await chamarUsuarios({ acao: "criar", email: d.get("email"), senha: d.get("senha"), papel: d.get("papel") });
+    e.target.reset();
+    avisar($("status-usuario"), "Usuário criado! Passe o e-mail e a senha para a pessoa.");
+    carregarUsuarios();
+  } catch (err) {
+    avisar($("status-usuario"), err.message);
+  }
+});
+
+const CARREGAR = { resumo: carregarResumo, pedidos: () => carregarLista("pedidos"), turmas: () => carregarLista("turmas"), textos: carregarTextos, marcos: () => carregarLista("marcos"), avisos: () => carregarLista("avisos"), fotos: () => carregarLista("fotos"), planos: () => carregarLista("planos"), depoimentos: () => carregarLista("depoimentos"), usuarios: carregarUsuarios };
+const podeAbrir = (aba) => papel === "dono" || ABAS_RECEPCAO.includes(aba);
 
 function abrirAba(aba) {
-  if (!CARREGAR[aba]) aba = "resumo";
+  if (!CARREGAR[aba] || !podeAbrir(aba)) aba = "resumo";
   document.querySelectorAll("[data-tela]").forEach((s) => (s.hidden = s.dataset.tela !== aba));
   document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-current", b.dataset.aba === aba ? "page" : "false"));
   history.replaceState(null, "", `#${aba}`);
@@ -383,12 +476,15 @@ function mostrarLogin() {
 
 async function entrar() {
   // só quem está na tabela admins pode editar; as regras do banco garantem isso mesmo se esta checagem for burlada
-  const { data: ehAdmin, error } = await sb.rpc("is_admin");
-  if (error || !ehAdmin) {
+  const { data: p, error } = await sb.rpc("meu_papel");
+  if (error || !p) {
     await sb.auth.signOut();
     $("erro-login").textContent = "Esta conta não tem acesso ao painel.";
     return mostrarLogin();
   }
+  papel = p;
+  document.querySelectorAll("[data-aba]").forEach((b) => (b.hidden = !podeAbrir(b.dataset.aba)));
+  document.querySelector('[data-novo="turmas"]').hidden = papel !== "dono";
   $("tela-login").hidden = true;
   $("abas").hidden = $("sair").hidden = false;
   abrirAba(location.hash.slice(1));

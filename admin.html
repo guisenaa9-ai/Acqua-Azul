@@ -26,6 +26,9 @@
     <button type="button" data-aba="marcos">História</button>
     <button type="button" data-aba="avisos">Avisos</button>
     <button type="button" data-aba="fotos">Fotos</button>
+    <button type="button" data-aba="planos">Planos</button>
+    <button type="button" data-aba="depoimentos">Depoimentos</button>
+    <button type="button" data-aba="usuarios">Usuários</button>
   </div>
 </nav>
 
@@ -101,6 +104,34 @@
     <p class="erro" role="alert"></p>
     <p class="status" id="status-fotos" role="status"></p>
     <div class="admin-lista fotos-admin" data-lista="fotos"></div>
+  </section>
+  <section data-tela="planos" hidden>
+    <div class="admin-topo"><h1>Planos e valores</h1><button type="button" class="btn btn-sol" data-novo="planos">+ Novo plano</button></div>
+    <p class="dica">Os planos aparecem no site na seção "Planos e valores". Marque <b>Destacar</b> no plano que quer mostrar como "Mais escolhido". As formas de pagamento ficam na aba <b>Textos</b>.</p>
+    <p class="erro" role="alert"></p>
+    <div class="admin-lista" data-lista="planos"></div>
+  </section>
+
+  <section data-tela="depoimentos" hidden>
+    <div class="admin-topo"><h1>Depoimentos</h1><button type="button" class="btn btn-sol" data-novo="depoimentos">+ Novo depoimento</button></div>
+    <p class="dica">Só publique depoimentos com a autorização de quem escreveu. Prefira só o primeiro nome do pai ou da mãe.</p>
+    <p class="erro" role="alert"></p>
+    <div class="admin-lista" data-lista="depoimentos"></div>
+  </section>
+
+  <section data-tela="usuarios" hidden>
+    <h1>Usuários do painel</h1>
+    <p class="dica"><b>Dono</b> mexe em tudo. <b>Recepção</b> só vê o resumo, atende os pedidos e atualiza as turmas (sem criar nem apagar turma). Crie a conta com uma senha provisória e passe para a pessoa.</p>
+    <form class="admin-cartao" id="form-usuario">
+      <div class="campos">
+        <label>E-mail<input type="email" name="email" required autocomplete="off"></label>
+        <label>Senha provisória<input type="text" name="senha" required minlength="8" autocomplete="new-password" placeholder="mínimo 8 caracteres"></label>
+        <label>Papel<select name="papel"><option value="recepcao">Recepção (pedidos e turmas)</option><option value="dono">Dono (tudo)</option></select></label>
+      </div>
+      <div class="botoes"><button type="submit" class="btn btn-mar">Criar usuário</button><span class="status" id="status-usuario" role="status"></span></div>
+    </form>
+    <p class="erro" role="alert"></p>
+    <div class="admin-lista" id="lista-usuarios"></div>
   </section>
 </main>
 
