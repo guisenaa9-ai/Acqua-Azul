@@ -3,9 +3,31 @@ const sb = window.supabase.createClient(supabaseUrl, supabaseKey);
 const $ = (id) => document.getElementById(id);
 const tela = (nome) => document.querySelector(`[data-tela="${nome}"]`);
 const urlFoto = (caminho) => `${supabaseUrl}/storage/v1/object/public/fotos/${caminho}`;
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const STATUS = [["novo", "Novo"], ["em_contato", "Em contato"], ["agendado", "Aula agendada"], ["matriculou", "Matriculou"], ["desistiu", "Desistiu"]];
+const telefoneBonito = (t) => (t.length >= 12 ? `(${t.slice(2, 4)}) ${t.slice(4, -4)}-${t.slice(-4)}` : t);
 
 // Campos de cada tabela editável. t: tipo do campo; r: rótulo.
 const TABELAS = {
+  pedidos: {
+    ordem: [["criado_em", { ascending: false }]],
+    nome: (x) => `o pedido de ${x.responsavel}`,
+    info: (x) => `<div class="info">
+      <p class="quando">${new Date(x.criado_em).toLocaleString("pt-BR", { timeZone: "America/Manaus", dateStyle: "short", timeStyle: "short" })}</p>
+      <h3>${esc(x.responsavel)}</h3>
+      <p><b>Criança:</b> ${esc(x.crianca)}</p>
+      <p><b>Turma:</b> ${esc(x.turma_texto)}</p>
+      <p><b>Telefone:</b> ${esc(telefoneBonito(x.telefone))}</p>
+      <div class="contato">
+        <a class="btn btn-mar" href="https://wa.me/${esc(x.telefone)}" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="btn btn-contorno" href="tel:+${esc(x.telefone)}">Ligar</a>
+      </div>
+    </div>`,
+    campos: [
+      { n: "status", r: "Situação", t: "select", op: STATUS },
+      { n: "anotacao", r: "Anotações", t: "textarea", max: 1000, largo: true, ph: "ex: Ligou dia 12, aula marcada para sábado 8h" }
+    ]
+  },
   turmas: {
     ordem: [["ordem"], ["id"]],
     novo: { unidade: "Cidade Nova", vagas: 8, total: 8, ordem: 0, ativa: true },
@@ -74,7 +96,7 @@ function criarCampo(def, valor) {
   let input;
   if (def.t === "select") {
     input = document.createElement("select");
-    def.op.forEach((o) => input.add(new Option(o)));
+    def.op.forEach((o) => (Array.isArray(o) ? input.add(new Option(o[1], o[0])) : input.add(new Option(o))));
   } else if (def.t === "textarea") {
     input = document.createElement("textarea");
     input.rows = 3;
@@ -140,6 +162,8 @@ function cartao(tabela, item) {
   const status = Object.assign(document.createElement("span"), { className: "status" });
   status.setAttribute("role", "status");
 
+  if (cfg.info) form.insertAdjacentHTML("beforeend", cfg.info(item));
+  if (item.status) form.dataset.status = item.status;
   if (cfg.foto) {
     const img = Object.assign(document.createElement("img"), { src: urlFoto(item.caminho), alt: item.legenda || "Foto enviada", className: "previa", loading: "lazy" });
     form.append(img);
@@ -179,6 +203,10 @@ function cartao(tabela, item) {
     const { error } = nova ? await sb.from(tabela).insert(dados) : await sb.from(tabela).update(dados).eq("id", item.id);
     if (error) return avisar(status, "Não salvou. Confira os campos e tente de novo.");
     avisar(status, "Salvo!");
+    if (dados.status) {
+      form.dataset.status = dados.status;
+      filtrarPedidos();
+    }
     if (nova) carregarLista(tabela);
   });
 
@@ -213,8 +241,15 @@ async function carregarLista(tabela) {
   const { data, error } = await q;
   if (error) return (erro.textContent = "Não foi possível carregar. Recarregue a página.");
   sec.querySelector("[data-lista]").replaceChildren(...data.map((x) => cartao(tabela, x)));
-  if (!data.length) sec.querySelector("[data-lista]").innerHTML = '<p class="dica">Nada cadastrado ainda.</p>';
+  if (!data.length) sec.querySelector("[data-lista]").innerHTML = '<p class="dica">Nada por aqui ainda.</p>';
+  if (tabela === "pedidos") filtrarPedidos();
 }
+
+function filtrarPedidos() {
+  const f = $("filtro-pedidos").value;
+  tela("pedidos").querySelectorAll("[data-lista] .admin-cartao").forEach((c) => (c.hidden = Boolean(f) && c.dataset.status !== f));
+}
+$("filtro-pedidos").addEventListener("change", filtrarPedidos);
 
 document.querySelectorAll("[data-novo]").forEach((b) =>
   b.addEventListener("click", () => {
@@ -287,14 +322,15 @@ $("enviar-fotos").addEventListener("change", async (e) => {
 
 // Resumo
 async function carregarResumo() {
-  const [turmas, conteudo, marcos, avisos, fotos] = await Promise.all([
+  const [turmas, conteudo, marcos, avisos, fotos, novos] = await Promise.all([
     sb.from("turmas").select("nome,unidade,dias,horario,vagas,total,ativa"),
     sb.from("conteudo").select("chave,valor"),
     sb.from("marcos").select("ano,titulo,texto"),
     sb.from("avisos").select("texto,ate,ativo").order("criado_em", { ascending: false }),
-    sb.from("fotos").select("id,ativa")
+    sb.from("fotos").select("id,ativa"),
+    sb.from("pedidos").select("id", { count: "exact", head: true }).eq("status", "novo")
   ]);
-  if ([turmas, conteudo, marcos, avisos, fotos].some((r) => r.error)) {
+  if ([turmas, conteudo, marcos, avisos, fotos, novos].some((r) => r.error)) {
     $("resumo-numeros").textContent = "Não foi possível carregar o resumo. Recarregue a página.";
     return;
   }
@@ -303,12 +339,12 @@ async function carregarResumo() {
   const hoje = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Manaus" });
   const avisoVigente = avisos.data.find((a) => a.ativo && (!a.ate || a.ate >= hoje));
   const tiles = [
+    [novos.count ?? 0, "pedidos novos para responder"],
     [livres("Cidade Nova"), "vagas livres na Cidade Nova"],
     [livres("Campos Elíseos"), "vagas livres no Campos Elíseos"],
     [ativas.filter((t) => t.vagas === 0).length, "turmas cheias"],
     [fotos.data.filter((f) => f.ativa).length, "fotos no site"]
   ];
-  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   $("resumo-numeros").innerHTML = tiles.map(([n, r]) => `<div class="numero"><strong>${n}</strong><span>${r}</span></div>`).join("");
 
   const item = (t) => `<li>${esc(t.nome)} – ${esc(t.unidade)} (${esc(t.dias)} ${esc(t.horario)})</li>`;
@@ -328,7 +364,7 @@ async function carregarResumo() {
 }
 
 // Navegação entre abas
-const CARREGAR = { resumo: carregarResumo, turmas: () => carregarLista("turmas"), textos: carregarTextos, marcos: () => carregarLista("marcos"), avisos: () => carregarLista("avisos"), fotos: () => carregarLista("fotos") };
+const CARREGAR = { resumo: carregarResumo, pedidos: () => carregarLista("pedidos"), turmas: () => carregarLista("turmas"), textos: carregarTextos, marcos: () => carregarLista("marcos"), avisos: () => carregarLista("avisos"), fotos: () => carregarLista("fotos") };
 
 function abrirAba(aba) {
   if (!CARREGAR[aba]) aba = "resumo";

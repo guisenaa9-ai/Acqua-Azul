@@ -50,3 +50,14 @@
 .enviar input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .enviar:focus-within { outline: 3px solid var(--abismo); outline-offset: 3px; }
 .previa { width: 200px; max-width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; }
+
+/* Pedidos */
+.info { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.info h3 { font-size: 22px; color: var(--abismo); }
+.info .quando { font-size: 13px; font-weight: 700; color: var(--suave); }
+.contato { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.contato .btn { padding: 8px 18px; }
+.btn-contorno { background: #fff; color: var(--mar); border-color: var(--mar); }
+.admin-cartao[data-status="novo"] { border-color: var(--sol); }
+.filtro { display: flex; align-items: center; gap: 8px; font-weight: 800; }
+.filtro select { font: inherit; font-weight: 600; padding: 8px 12px; border-radius: 10px; border: 2px solid #c9e3fb; min-height: 44px; background: #fff; }

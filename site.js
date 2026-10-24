@@ -93,12 +93,52 @@ lista.addEventListener("click", (e) => {
   if (a) selectTurma.value = a.dataset.id;
 });
 
-document.getElementById("form-agenda").addEventListener("submit", (e) => {
+// Cloudflare Turnstile (anti-robô): o script chama esta função quando carrega
+let turnstileId = null;
+window.iniciarTurnstile = () => {
+  turnstileId = window.turnstile.render("#turnstile", { sitekey: window.ACQUA.turnstileSiteKey, language: "pt-br" });
+};
+
+const formAgenda = document.getElementById("form-agenda");
+const retorno = document.getElementById("retorno");
+function mostrarRetorno(texto, linkWhats, erro) {
+  retorno.className = "cheio retorno" + (erro ? " erro" : "");
+  retorno.replaceChildren(Object.assign(document.createElement("span"), { textContent: texto }));
+  if (linkWhats) retorno.append(Object.assign(document.createElement("a"), { className: "btn btn-mar", href: linkWhats, target: "_blank", rel: "noopener", textContent: "Falar agora no WhatsApp" }));
+}
+
+// O pedido fica salvo para a escola retornar; o WhatsApp vira opção para quem quer conversar na hora
+formAgenda.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const d = new FormData(e.target);
+  const d = new FormData(formAgenda);
+  const token = turnstileId !== null ? window.turnstile.getResponse(turnstileId) : "";
+  if (!token) return mostrarRetorno("Aguarde a verificação anti-robô logo acima do botão e tente de novo.", null, true);
   const t = turmas.find((x) => String(x.id) === d.get("turma"));
   const msg = `Olá! Gostaria de agendar uma aula experimental.\nResponsável: ${d.get("responsavel")}\nCriança: ${d.get("crianca")}\nTurma: ${t ? rotulo(t) : "quero ajuda para escolher"}`;
-  window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
+  const linkWhats = `https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`;
+  const botao = document.getElementById("enviar-pedido");
+  botao.disabled = true;
+  mostrarRetorno("Enviando…");
+  try {
+    const r = await fetch(`${supabaseUrl}/functions/v1/pedido`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: supabaseKey },
+      body: JSON.stringify({
+        responsavel: d.get("responsavel"), telefone: d.get("telefone"), crianca: d.get("crianca"),
+        turma_id: t ? t.id : null, consentimento: d.get("consentimento") === "on", site: d.get("site"), token
+      })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.erro || "Não conseguimos enviar agora.");
+    formAgenda.reset();
+    mostrarRetorno("Pedido enviado! A escola vai entrar em contato pelo telefone informado. Se preferir, fale agora:", linkWhats);
+  } catch (err) {
+    const motivo = err instanceof TypeError ? "Não conseguimos enviar agora." : err.message; // TypeError = sem conexão
+    mostrarRetorno(`${motivo} Você também pode falar direto com a gente:`, linkWhats, true);
+  } finally {
+    botao.disabled = false;
+    if (turnstileId !== null) window.turnstile.reset(turnstileId);
+  }
 });
 
 // Golfinhos ariscos: fogem para o lado oposto ao toque e voltam depois de um tempo

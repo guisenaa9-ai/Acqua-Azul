@@ -171,10 +171,14 @@
       </div>
       <form class="form" id="form-agenda">
         <label>Nome do responsável<input name="responsavel" required maxlength="80" autocomplete="name"></label>
-        <label>Nome e idade da criança<input name="crianca" required maxlength="80" placeholder="ex: Davi, 3 anos"></label>
+        <label>Telefone com DDD<input name="telefone" type="tel" required maxlength="20" autocomplete="tel" placeholder="(92) 99999-9999"></label>
+        <label class="cheio">Nome e idade da criança<input name="crianca" required maxlength="80" placeholder="ex: Davi, 3 anos"></label>
         <label class="cheio">Turma de interesse<select name="turma" id="select-turma" required></select></label>
-        <p class="lgpd">Seus dados não ficam guardados neste site: eles vão direto para a conversa no WhatsApp da escola. Veja a <a href="privacidade.html">política de privacidade</a>.</p>
-        <button class="btn btn-sol" type="submit">Enviar pelo WhatsApp</button>
+        <label class="isca" aria-hidden="true">Não preencha<input name="site" tabindex="-1" autocomplete="off"></label>
+        <label class="consentimento"><input type="checkbox" name="consentimento" required> Autorizo a Acqua Azul a usar estes dados para entrar em contato sobre a aula experimental. Os dados são apagados em até 6 meses. Veja a <a href="privacidade.html">política de privacidade</a>.</label>
+        <div class="cheio" id="turnstile"></div>
+        <button class="btn btn-sol" type="submit" id="enviar-pedido">Enviar pedido</button>
+        <div class="cheio retorno" id="retorno" role="status" aria-live="polite"></div>
       </form>
     </div>
     <div class="ondas" aria-hidden="true">
@@ -195,5 +199,6 @@
 
 <script src="config.js"></script>
 <script src="site.js"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=iniciarTurnstile" async defer></script>
 </body>
 </html>

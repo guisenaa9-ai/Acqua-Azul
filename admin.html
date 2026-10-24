@@ -20,6 +20,7 @@
 <nav class="abas" id="abas" aria-label="Seções do painel" hidden>
   <div class="wrap">
     <button type="button" data-aba="resumo">Resumo</button>
+    <button type="button" data-aba="pedidos">Pedidos</button>
     <button type="button" data-aba="turmas">Turmas</button>
     <button type="button" data-aba="textos">Textos</button>
     <button type="button" data-aba="marcos">História</button>
@@ -43,6 +44,25 @@
     <h1>Resumo</h1>
     <div class="numeros-admin" id="resumo-numeros"></div>
     <div id="resumo-listas"></div>
+  </section>
+
+  <section data-tela="pedidos" hidden>
+    <div class="admin-topo">
+      <h1>Pedidos de aula experimental</h1>
+      <label class="filtro">Mostrar
+        <select id="filtro-pedidos">
+          <option value="">Todos</option>
+          <option value="novo">Novos</option>
+          <option value="em_contato">Em contato</option>
+          <option value="agendado">Aula agendada</option>
+          <option value="matriculou">Matriculou</option>
+          <option value="desistiu">Desistiu</option>
+        </select>
+      </label>
+    </div>
+    <p class="dica">Pedidos enviados pelo formulário do site. Toque em <b>WhatsApp</b> ou <b>Ligar</b> para falar com a família e depois atualize a situação. Pela LGPD, pedidos com mais de 6 meses são apagados sozinhos.</p>
+    <p class="erro" role="alert"></p>
+    <div class="admin-lista" data-lista="pedidos"></div>
   </section>
 
   <section data-tela="turmas" hidden>

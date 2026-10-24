@@ -12,6 +12,7 @@ Site estático (HTML, CSS e JS puros, sem build), hospedado na Vercel. As turmas
 | `config.js` | URL e chave pública do Supabase, número do WhatsApp. |
 | `vercel.json` | Cabeçalhos de segurança (CSP etc.). |
 | `vendor/supabase.js` | supabase-js 2.45.4 (cópia local, sem CDN). |
+| `supabase/functions/pedido/` | Edge Function que recebe o formulário, confere o Cloudflare Turnstile e grava o pedido. |
 
 ## Segurança
 
@@ -19,7 +20,9 @@ Site estático (HTML, CSS e JS puros, sem build), hospedado na Vercel. As turmas
 - Tabelas: `turmas`, `conteudo` (textos soltos), `marcos` (história), `avisos`, `fotos` + bucket público `fotos`.
 - Visitantes só leem o que está ativo/vigente. Criar, editar e apagar exige login **e** estar na tabela `admins`.
 - Fotos são reduzidas no navegador (máx. 1600 px, JPEG) antes do upload; o bucket aceita só JPEG/WebP até 3 MB.
-- O formulário de agendamento não envia nada a servidor: só monta a mensagem do WhatsApp.
+- Pedidos de aula experimental: visitante não acessa a tabela `pedidos`; o envio passa pela função `pedido` (Turnstile + campo-isca + até 3 pedidos/hora por IP e 60/hora no total). Só admin lê.
+- LGPD: consentimento obrigatório no formulário e job `apagar-pedidos-antigos` (pg_cron) que apaga pedidos com mais de 6 meses todo dia.
+- Turnstile: `turnstileSiteKey` em `config.js` e o segredo `TURNSTILE_SECRET` nas Edge Functions do Supabase. Sem eles valem as chaves de teste da Cloudflare, que aprovam qualquer envio.
 
 ## Dar acesso de admin a alguém
 
