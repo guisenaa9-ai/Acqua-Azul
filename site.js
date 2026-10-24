@@ -62,19 +62,20 @@ document.getElementById("form-agenda").addEventListener("submit", (e) => {
   window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
 });
 
-// Golfinho arisco: foge quando tentam tocar, volta depois de um tempo
-const arisco = document.getElementById("arisco");
-let timer;
-function fugir() {
-  if (arisco.classList.contains("fugindo")) return;
-  arisco.className = "arisco fugindo";
-  clearTimeout(timer);
-  timer = setTimeout(() => {
-    arisco.className = "arisco voltando";
-    timer = setTimeout(() => (arisco.className = "arisco"), 1200);
-  }, 3000);
-}
-arisco.addEventListener("pointerenter", fugir);
-arisco.addEventListener("click", fugir);
+// Golfinhos ariscos: cada um foge quando tentam tocar e volta depois de um tempo
+document.querySelectorAll(".arisco").forEach((arisco) => {
+  let timer;
+  const fugir = () => {
+    if (arisco.classList.contains("fugindo")) return;
+    arisco.className = "arisco fugindo";
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      arisco.className = "arisco voltando";
+      timer = setTimeout(() => (arisco.className = "arisco"), 1200);
+    }, 3000);
+  };
+  arisco.addEventListener("pointerenter", fugir);
+  arisco.addEventListener("click", fugir);
+});
 
 carregar();
