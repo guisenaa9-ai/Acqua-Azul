@@ -183,3 +183,4 @@ footer a { color: #fff; font-weight: 800; }
 .avatar { flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--mar); color: #fff; font: 800 22px "Baloo 2", sans-serif; }
 .depoimento:nth-child(3n+2) .avatar { background: var(--piscina); }
 .depoimento:nth-child(3n) .avatar { background: var(--abismo); }
+.planos .grade, .depoimentos .grade { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
