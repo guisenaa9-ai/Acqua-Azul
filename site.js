@@ -62,16 +62,21 @@ document.getElementById("form-agenda").addEventListener("submit", (e) => {
   window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
 });
 
-// Golfinhos ariscos: cada um foge quando tentam tocar e volta depois de um tempo
+// Golfinhos ariscos: fogem para o lado oposto ao toque e voltam depois de um tempo
 document.querySelectorAll(".arisco").forEach((arisco) => {
   let timer;
-  const fugir = () => {
+  const fugir = (e) => {
     if (arisco.classList.contains("fugindo")) return;
-    arisco.className = "arisco fugindo";
+    const r = arisco.querySelector("svg").getBoundingClientRect(); // o desenho, que se move dentro do botão
+    // toque à esquerda do golfinho → foge para a direita; à direita → para a esquerda (teclado: direita)
+    const dir = e.clientX && e.clientX > r.left + r.width / 2 ? -1 : 1;
+    arisco.style.setProperty("--dir", dir);
+    arisco.classList.remove("voltando");
+    arisco.classList.add("fugindo");
     clearTimeout(timer);
     timer = setTimeout(() => {
-      arisco.className = "arisco voltando";
-      timer = setTimeout(() => (arisco.className = "arisco"), 1200);
+      arisco.classList.replace("fugindo", "voltando");
+      timer = setTimeout(() => arisco.classList.remove("voltando"), 1200);
     }, 3000);
   };
   arisco.addEventListener("pointerenter", fugir);
