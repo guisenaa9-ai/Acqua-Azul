@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin · Acqua Azul</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="logo" href="/">Acqua <span>Azul</span> <small>admin</small></a>
+    <button type="button" class="btn btn-borda sair" id="sair" hidden>Sair</button>
+  </div>
+</header>
+
+<main class="admin wrap">
+  <section id="tela-login" hidden>
+    <form class="form login" id="form-login">
+      <h1>Entrar</h1>
+      <label class="cheio">E-mail<input type="email" name="email" required autocomplete="username"></label>
+      <label class="cheio">Senha<input type="password" name="senha" required autocomplete="current-password"></label>
+      <p class="erro cheio" id="erro-login" role="alert"></p>
+      <button class="btn btn-mar" type="submit">Entrar</button>
+    </form>
+  </section>
+
+  <section id="tela-turmas" hidden>
+    <div class="admin-topo">
+      <h1>Turmas</h1>
+      <button type="button" class="btn btn-sol" id="nova">+ Nova turma</button>
+    </div>
+    <p class="dica">Use <b>−</b> e <b>+</b> para mudar as vagas na hora. Para mudar o resto, edite e toque em <b>Salvar</b>. Turma desativada some do site mas fica guardada aqui.</p>
+    <p class="erro" id="erro-turmas" role="alert"></p>
+    <div id="lista" class="admin-lista"></div>
+  </section>
+</main>
+
+<template id="tpl-turma">
+  <form class="admin-cartao">
+    <div class="vagas-ctrl">
+      <button type="button" class="btn-redondo" data-acao="menos" aria-label="Uma vaga a menos">−</button>
+      <div><strong data-campo="vagasTxt"></strong><span>vagas livres</span></div>
+      <button type="button" class="btn-redondo" data-acao="mais" aria-label="Uma vaga a mais">+</button>
+    </div>
+    <div class="campos">
+      <label>Nome da turma<input name="nome" required maxlength="60"></label>
+      <label>Unidade<select name="unidade"><option>Cidade Nova</option><option>Campos Elíseos</option></select></label>
+      <label>Idade<input name="idade" required maxlength="60" placeholder="ex: 2 a 4 anos"></label>
+      <label>Dias<input name="dias" required maxlength="60" placeholder="ex: Seg e Qua"></label>
+      <label>Horário<input name="horario" required maxlength="20" placeholder="ex: 16h"></label>
+      <label>Vagas livres<input name="vagas" type="number" min="0" required></label>
+      <label>Total de vagas<input name="total" type="number" min="1" required></label>
+      <label>Ordem no site<input name="ordem" type="number"></label>
+      <label class="check"><input name="ativa" type="checkbox"> Aparece no site</label>
+    </div>
+    <div class="botoes">
+      <button type="submit" class="btn btn-mar">Salvar</button>
+      <button type="button" class="btn btn-apagar" data-acao="apagar">Apagar</button>
+      <span class="status" role="status"></span>
+    </div>
+  </form>
+</template>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

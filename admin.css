@@ -1,0 +1,27 @@
+.logo small { font: 700 14px "Nunito", sans-serif; color: var(--sol); margin-left: 4px; }
+.sair { padding: 8px 20px; }
+.admin { padding-top: 40px; padding-bottom: 80px; }
+.admin h1 { color: var(--abismo); font-size: 36px; }
+.login { max-width: 420px; margin: 40px auto; box-shadow: 0 12px 32px rgba(6,36,90,.12); }
+.login h1 { grid-column: 1 / -1; }
+.erro { color: var(--alerta); font-weight: 700; margin: 0; min-height: 1em; }
+.admin-topo { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.dica { color: var(--suave); margin-bottom: 16px; }
+.admin-lista { display: flex; flex-direction: column; gap: 16px; }
+.admin-cartao { background: #fff; border: 2px solid var(--espuma); border-radius: var(--raio); padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.admin-cartao.inativa { opacity: .6; }
+.admin-cartao.nova { border-color: var(--sol); }
+.vagas-ctrl { display: flex; align-items: center; gap: 12px; text-align: center; }
+.vagas-ctrl strong { display: block; font: 800 36px "Baloo 2", sans-serif; color: var(--mar); line-height: 1; }
+.vagas-ctrl span { font-size: 13px; color: var(--suave); font-weight: 700; }
+.btn-redondo { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--mar); background: #fff; color: var(--mar); font: 800 24px "Nunito", sans-serif; cursor: pointer; }
+.btn-redondo:disabled { opacity: .4; cursor: default; }
+.campos { flex: 999 1 480px; min-width: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.campos label { display: flex; flex-direction: column; gap: 4px; font-weight: 800; font-size: 14px; min-width: 0; }
+.campos input, .campos select { font: inherit; font-weight: 400; padding: 10px 12px; border-radius: 10px; border: 2px solid #c9e3fb; min-height: 44px; width: 100%; min-width: 0; background: #fff; color: var(--texto); }
+.campos .check { flex-direction: row; align-items: center; gap: 8px; }
+.campos .check input { width: 22px; min-height: 22px; }
+.botoes { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.botoes .btn { padding: 10px 22px; }
+.btn-apagar { background: #fff; color: var(--alerta); border-color: var(--alerta); }
+.status { font-weight: 700; color: var(--mar); }

@@ -1,1 +1,29 @@
-# Acqua-Azul
+# Acqua Azul
+
+Site da Acqua Azul Natação (Manaus): história, turmas abertas e agendamento de aula experimental pelo WhatsApp, com uma aba de admin para a escola atualizar turmas e vagas.
+
+Site estático (HTML, CSS e JS puros, sem build), hospedado na Vercel. As turmas ficam no Supabase (projeto `acqua-azul`, São Paulo).
+
+| Arquivo | O que é |
+| --- | --- |
+| `index.html`, `styles.css`, `site.js` | Site público. Lê as turmas ativas do Supabase. |
+| `admin.html`, `admin.css`, `admin.js` | Painel em `/admin`: login e edição das turmas. |
+| `privacidade.html` | Política de privacidade (LGPD). |
+| `config.js` | URL e chave pública do Supabase, número do WhatsApp. |
+| `vercel.json` | Cabeçalhos de segurança (CSP etc.). |
+| `vendor/supabase.js` | supabase-js 2.45.4 (cópia local, sem CDN). |
+
+## Segurança
+
+- A chave em `config.js` é a publishable: pública por desenho. Quem protege os dados são as regras RLS do banco.
+- Visitantes só leem turmas com `ativa = true`. Criar, editar e apagar exige login **e** estar na tabela `admins`.
+- O formulário de agendamento não envia nada a servidor: só monta a mensagem do WhatsApp.
+
+## Dar acesso de admin a alguém
+
+1. Supabase › Authentication › Users › **Add user** (e-mail e senha da pessoa).
+2. No SQL Editor: `insert into public.admins (user_id) select id from auth.users where email = 'email@da.pessoa';`
+
+## Rodar localmente
+
+Qualquer servidor estático na pasta, por exemplo `npx serve .`.

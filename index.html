@@ -6,325 +6,160 @@
 <title>Acqua Azul Natação</title>
 <meta name="description" content="Natação para bebês e crianças em Manaus desde 2014. Unidades Cidade Nova e Campos Elíseos.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --abismo: #06245a;
-    --mar: #0b4fb3;
-    --piscina: #1e88e5;
-    --raia: #4fc3f7;
-    --espuma: #e6f4ff;
-    --sol: #ffc83d;
-    --texto: #10264a;
-    --suave: #5a6f8f;
-    --branco: #ffffff;
-    --raio: 20px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body { font-family: "Nunito", system-ui, sans-serif; color: var(--texto); background: var(--branco); line-height: 1.6; }
-  h1, h2, h3 { font-family: "Baloo 2", "Nunito", sans-serif; line-height: 1.15; }
-  a { color: inherit; }
-  .wrap { width: min(1100px, 100% - 32px); margin-inline: auto; }
-  .btn { display: inline-block; padding: 14px 28px; border-radius: 999px; font-weight: 700; text-decoration: none; border: 0; cursor: pointer; font: 700 1rem "Nunito", sans-serif; transition: transform .15s, box-shadow .15s; }
-  .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(6,36,90,.25); }
-  .btn-sol { background: var(--sol); color: var(--abismo); }
-  .btn-claro { background: rgba(255,255,255,.15); color: var(--branco); border: 2px solid rgba(255,255,255,.5); }
-  :focus-visible { outline: 3px solid var(--sol); outline-offset: 3px; }
-
-  /* Topo */
-  header { position: sticky; top: 0; z-index: 10; background: rgba(6,36,90,.92); backdrop-filter: blur(8px); color: var(--branco); }
-  header .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; }
-  .logo { font: 800 1.5rem "Baloo 2", sans-serif; text-decoration: none; }
-  .logo span { color: var(--raia); }
-  nav { display: flex; gap: 24px; font-weight: 600; }
-  nav a { text-decoration: none; opacity: .85; }
-  nav a:hover { opacity: 1; }
-  @media (max-width: 720px) { nav { display: none; } }
-
-  /* Hero */
-  .hero { background: radial-gradient(circle at 80% 20%, var(--piscina), var(--mar) 45%, var(--abismo)); color: var(--branco); position: relative; overflow: hidden; }
-  .hero .wrap { padding: 96px 0 150px; display: grid; gap: 40px; grid-template-columns: 1.2fr 1fr; align-items: center; }
-  .selo { display: inline-block; background: rgba(255,255,255,.15); padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: .9rem; margin-bottom: 16px; }
-  .hero h1 { font-size: clamp(2.4rem, 6vw, 4rem); margin-bottom: 16px; }
-  .hero h1 em { font-style: normal; color: var(--sol); }
-  .hero p { font-size: 1.15rem; opacity: .9; max-width: 32em; margin-bottom: 32px; }
-  .hero .acoes { display: flex; gap: 12px; flex-wrap: wrap; }
-  .bolhas { position: relative; aspect-ratio: 1; }
-  .bolhas span { position: absolute; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.6), rgba(255,255,255,.05)); border: 1px solid rgba(255,255,255,.35); animation: subir 6s ease-in-out infinite; }
-  .bolhas .b1 { width: 60%; height: 60%; left: 20%; top: 15%; display: grid; place-items: center; font-size: 6rem; }
-  .bolhas .b2 { width: 18%; height: 18%; left: 5%; top: 60%; animation-delay: -2s; }
-  .bolhas .b3 { width: 12%; height: 12%; right: 8%; top: 8%; animation-delay: -4s; }
-  .bolhas .b4 { width: 8%; height: 8%; right: 18%; bottom: 10%; animation-delay: -1s; }
-  @keyframes subir { 50% { transform: translateY(-14px); } }
-  @media (prefers-reduced-motion: reduce) { .bolhas span { animation: none; } html { scroll-behavior: auto; } }
-  .onda { position: absolute; bottom: -1px; left: 0; width: 100%; height: 90px; }
-  @media (max-width: 720px) { .hero .wrap { grid-template-columns: 1fr; padding-top: 56px; } .bolhas { max-width: 260px; margin: 0 auto; } }
-
-  /* Números */
-  .numeros { margin-top: -60px; position: relative; z-index: 2; }
-  .numeros .wrap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-  .numero { background: var(--branco); border-radius: var(--raio); padding: 24px; text-align: center; box-shadow: 0 12px 32px rgba(6,36,90,.12); }
-  .numero strong { display: block; font: 800 2.2rem "Baloo 2", sans-serif; color: var(--mar); }
-  .numero span { color: var(--suave); font-weight: 600; }
-  @media (max-width: 720px) { .numeros .wrap { grid-template-columns: repeat(2, 1fr); } }
-
-  section { padding: 96px 0; }
-  .titulo { text-align: center; margin-bottom: 48px; }
-  .titulo small { color: var(--piscina); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-  .titulo h2 { font-size: clamp(2rem, 4vw, 2.8rem); color: var(--abismo); }
-  .titulo p { color: var(--suave); max-width: 36em; margin: 8px auto 0; }
-
-  /* História */
-  .linha { position: relative; max-width: 760px; margin: 0 auto; }
-  .linha::before { content: ""; position: absolute; left: 22px; top: 0; bottom: 0; width: 4px; border-radius: 4px; background: linear-gradient(var(--raia), var(--mar)); }
-  .marco { position: relative; padding: 0 0 36px 72px; }
-  .marco::before { content: ""; position: absolute; left: 10px; top: 4px; width: 28px; height: 28px; border-radius: 50%; background: var(--branco); border: 5px solid var(--piscina); }
-  .marco b { color: var(--piscina); font: 800 1.3rem "Baloo 2", sans-serif; }
-  .marco h3 { font-size: 1.3rem; color: var(--abismo); }
-  .marco p { color: var(--suave); }
-
-  /* Diferenciais */
-  .claro { background: var(--espuma); }
-  .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
-  .cartao { background: var(--branco); border-radius: var(--raio); padding: 28px; box-shadow: 0 6px 20px rgba(6,36,90,.06); }
-  .cartao .ico { font-size: 2.2rem; margin-bottom: 8px; }
-  .cartao h3 { color: var(--abismo); font-size: 1.25rem; margin-bottom: 4px; }
-  .cartao p { color: var(--suave); }
-
-  /* Turmas */
-  .filtros { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 32px; }
-  .filtros button { padding: 10px 20px; border-radius: 999px; border: 2px solid var(--piscina); background: var(--branco); color: var(--mar); font: 700 .95rem "Nunito", sans-serif; cursor: pointer; }
-  .filtros button[aria-pressed="true"] { background: var(--piscina); color: var(--branco); }
-  .turma { border: 2px solid var(--espuma); border-radius: var(--raio); padding: 24px; display: flex; flex-direction: column; gap: 12px; transition: border-color .15s; }
-  .turma:hover { border-color: var(--raia); }
-  .turma .topo { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
-  .turma h3 { color: var(--abismo); font-size: 1.3rem; }
-  .tag { font-size: .8rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--espuma); color: var(--mar); white-space: nowrap; }
-  .turma ul { list-style: none; color: var(--suave); }
-  .turma li::before { content: "› "; color: var(--piscina); font-weight: 800; }
-  .vagas { height: 8px; border-radius: 8px; background: var(--espuma); overflow: hidden; }
-  .vagas i { display: block; height: 100%; background: linear-gradient(90deg, var(--raia), var(--piscina)); }
-  .vagas-txt { font-size: .9rem; font-weight: 700; color: var(--mar); }
-  .vagas-txt.poucas { color: #c2410c; }
-  .turma .btn { text-align: center; background: var(--mar); color: var(--branco); margin-top: auto; }
-
-  /* Agendamento */
-  .agenda { background: linear-gradient(135deg, var(--mar), var(--abismo)); color: var(--branco); }
-  .agenda .titulo h2 { color: var(--branco); }
-  .agenda .titulo p { color: rgba(255,255,255,.8); }
-  .agenda .titulo small { color: var(--raia); }
-  form { max-width: 640px; margin: 0 auto; background: var(--branco); color: var(--texto); border-radius: var(--raio); padding: 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  label { display: grid; gap: 6px; font-weight: 700; font-size: .95rem; min-width: 0; }
-  input, select { width: 100%; min-width: 0; }
-  label.cheio, form .btn { grid-column: 1 / -1; }
-  input, select { font: inherit; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--espuma); background: var(--branco); color: var(--texto); }
-  input:focus, select:focus { border-color: var(--piscina); outline: none; }
-  @media (max-width: 560px) { form { grid-template-columns: 1fr; padding: 24px; } }
-
-  /* Unidades */
-  .unidade { border-radius: var(--raio); overflow: hidden; background: var(--branco); box-shadow: 0 6px 20px rgba(6,36,90,.08); }
-  .unidade .capa { height: 140px; background: linear-gradient(135deg, var(--raia), var(--mar)); display: grid; place-items: center; color: var(--branco); font: 800 1.6rem "Baloo 2", sans-serif; }
-  .unidade div:last-child { padding: 24px; color: var(--suave); }
-
-  footer { background: var(--abismo); color: rgba(255,255,255,.8); padding: 48px 0; text-align: center; }
-  footer .logo { color: var(--branco); display: inline-block; margin-bottom: 8px; }
-  footer a { color: var(--raia); }
-</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <symbol id="golfinho" viewBox="0 0 160 90">
+      <g stroke="#06245a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M24 46 C18 41 12 34 5 31 C9 38 12 43 15 47 C12 51 9 56 5 63 C12 60 18 53 24 49 Z" fill="#3fa9e8"/>
+        <path d="M86 25 C80 16 70 11 58 10 C64 15 66 21 66 28 Z" fill="#3fa9e8"/>
+        <path d="M22 44 C40 34 62 25 92 24 C112 23 126 26 134 35 C138 39 144 41 151 43 C156 44 157 48 152 49 C144 51 136 52 128 54 C108 62 76 64 52 58 C40 55 30 52 22 50 Z" fill="#5ab8f0"/>
+      </g>
+      <path d="M151 48 C144 51 136 52 128 54 C108 62 76 64 54 58 C76 55 104 51 130 48 C138 47 146 47 151 48 Z" fill="#eaf6ff"/>
+      <path d="M110 53 C104 61 98 67 89 70 C93 64 97 59 99 56 Z" fill="#3fa9e8" stroke="#06245a" stroke-width="2.5" stroke-linejoin="round"/>
+      <circle cx="125" cy="45" r="3.5" fill="#ff9ab0" opacity=".55"/>
+      <circle cx="127" cy="37" r="3.6" fill="#06245a"/>
+      <circle cx="128.3" cy="35.8" r="1.2" fill="#fff"/>
+      <path d="M150 47.5 C143 49.5 136 50 130 48" fill="none" stroke="#06245a" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="onda-1" viewBox="0 0 2880 120" preserveAspectRatio="none"><path d="M0 50 Q180 10 360 50 T720 50 T1080 50 T1440 50 T1800 50 T2160 50 T2520 50 T2880 50 V120 H0 Z"/></symbol>
+    <symbol id="onda-2" viewBox="0 0 2880 120" preserveAspectRatio="none"><path d="M0 70 Q240 30 480 70 T960 70 T1440 70 T1920 70 T2400 70 T2880 70 V120 H0 Z"/></symbol>
+    <symbol id="onda-3" viewBox="0 0 2880 120" preserveAspectRatio="none"><path d="M0 85 Q180 60 360 85 T720 85 T1080 85 T1440 85 T1800 85 T2160 85 T2520 85 T2880 85 V120 H0 Z"/></symbol>
+  </defs>
+</svg>
+
 <header>
   <div class="wrap">
-    <a class="logo" href="#">Acqua <span>Azul</span></a>
+    <a class="logo" href="#topo">Acqua <span>Azul</span></a>
     <nav aria-label="Principal">
       <a href="#historia">Nossa história</a>
       <a href="#turmas">Turmas</a>
-      <a href="#unidades">Unidades</a>
       <a href="#agendar">Agendar</a>
     </nav>
   </div>
 </header>
 
 <main>
-  <section class="hero" aria-labelledby="hero-titulo">
-    <div class="wrap">
-      <div>
-        <span class="selo">🏊 Natação para bebês e crianças · Manaus</span>
-        <h1 id="hero-titulo">Aqui tem natação e <em>muita diversão</em></h1>
+  <section id="topo" class="hero">
+    <div aria-hidden="true">
+      <span class="bolha" style="left:62%;width:22px;height:22px"></span>
+      <span class="bolha" style="left:74%;width:12px;height:12px;animation-delay:-2s"></span>
+      <span class="bolha" style="left:86%;width:30px;height:30px;animation-delay:-4.5s"></span>
+      <span class="bolha" style="left:54%;width:10px;height:10px;animation-delay:-5.5s"></span>
+      <span class="bolha" style="left:92%;width:16px;height:16px;animation-delay:-1s"></span>
+    </div>
+    <div class="wrap hero-in">
+      <div class="hero-texto">
+        <span class="selo">NATAÇÃO PARA BEBÊS E INFANTIL · MANAUS</span>
+        <h1>Aqui tem natação e <em>muita diversão</em></h1>
         <p>Desde 2014 ensinando crianças a nadar com segurança, carinho e alegria. Do primeiro mergulho do bebê ao nado completo.</p>
         <div class="acoes">
           <a class="btn btn-sol" href="#agendar">Agendar aula experimental</a>
-          <a class="btn btn-claro" href="#turmas">Ver turmas abertas</a>
+          <a class="btn btn-borda" href="#turmas">Ver turmas abertas</a>
         </div>
       </div>
-      <div class="bolhas" aria-hidden="true">
-        <span class="b1">🐬</span><span class="b2"></span><span class="b3"></span><span class="b4"></span>
+      <div class="hero-mascote">
+        <div class="mascote"><svg viewBox="0 0 160 90" role="img" aria-label="Golfinho mascote da Acqua Azul"><use href="#golfinho"/></svg></div>
       </div>
     </div>
-    <svg class="onda" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true">
-      <path fill="#fff" d="M0,40 C240,90 480,0 720,40 C960,80 1200,10 1440,40 L1440,90 L0,90 Z"/>
-    </svg>
+    <div aria-hidden="true">
+      <span class="respingo r1"></span>
+      <span class="respingo r2"></span>
+      <div class="salto"><div class="salto-y"><svg class="salto-r" viewBox="0 0 160 90"><use href="#golfinho"/></svg></div></div>
+    </div>
+    <div class="ondas" aria-hidden="true">
+      <svg class="onda o3" fill="#4fc3f7"><use href="#onda-1"/></svg>
+      <svg class="onda o2" fill="#e6f4ff"><use href="#onda-2"/></svg>
+      <svg class="onda" fill="#ffffff"><use href="#onda-3"/></svg>
+    </div>
   </section>
 
-  <div class="numeros">
+  <section class="numeros" aria-label="A Acqua Azul em números">
     <div class="wrap">
       <div class="numero"><strong>2014</strong><span>desde</span></div>
       <div class="numero"><strong>2</strong><span>unidades</span></div>
-      <div class="numero"><strong>6m+</strong><span>idade inicial</span></div>
+      <div class="numero"><strong>[IDADE]</strong><span>idade inicial</span></div>
       <div class="numero"><strong>23 mil</strong><span>famílias nos seguem</span></div>
     </div>
-  </div>
+  </section>
 
-  <section id="historia" aria-labelledby="historia-titulo">
-    <div class="wrap">
-      <div class="titulo">
-        <small>Nossa história</small>
-        <h2 id="historia-titulo">Mais de 10 anos dentro d'água</h2>
-        <p>Uma escola que nasceu do amor pela água e pela segurança das crianças.</p>
-      </div>
-      <!-- Textos provisórios: substituir pela história real contada pela dona -->
-      <div class="linha">
-        <div class="marco"><b>2014</b><h3>O primeiro mergulho</h3><p>A Acqua Azul abre as portas com um sonho: ensinar crianças a nadar de forma lúdica e segura.</p></div>
-        <div class="marco"><b>2018</b><h3>Natação Salva Vidas</h3><p>Nasce o programa de segurança aquática, ensinando os pequenos a se proteger na água.</p></div>
-        <div class="marco"><b>2022</b><h3>Unidade Cidade Nova</h3><p>Com cada vez mais famílias, ganhamos uma estrutura nova e piscina aquecida.</p></div>
-        <div class="marco"><b>Hoje</b><h3>Campos Elíseos</h3><p>Duas unidades e milhares de crianças que aprenderam a amar a água com a gente.</p></div>
-      </div>
+  <section id="historia" class="historia">
+    <div class="titulo">
+      <span class="rotulo">Nossa história</span>
+      <h2>Mais de 10 anos dentro d'água</h2>
+    </div>
+    <!-- Textos provisórios: substituir pela história real contada pela dona -->
+    <div class="linha">
+      <div class="marco"><b>2014</b><h3>O primeiro mergulho</h3><p>[História da fundação contada pela dona]</p></div>
+      <div class="marco"><b>[ANO]</b><h3>Natação Salva Vidas</h3><p>[Como nasceu o programa de segurança aquática]</p></div>
+      <div class="marco"><b>Hoje</b><h3>Cidade Nova e Campos Elíseos</h3><p>Duas unidades e muitas crianças que aprenderam a amar a água com a gente.</p></div>
     </div>
   </section>
 
-  <section class="claro" aria-labelledby="dif-titulo">
-    <div class="wrap">
-      <div class="titulo">
-        <small>Por que a Acqua Azul</small>
-        <h2 id="dif-titulo">Segurança em primeiro lugar</h2>
-      </div>
-      <div class="grade">
-        <div class="cartao"><div class="ico">🛟</div><h3>Segurança aquática</h3><p>Metodologia focada em autonomia e prevenção de afogamentos.</p></div>
-        <div class="cartao"><div class="ico">👶</div><h3>Bebês a partir de 6 meses</h3><p>Aulas com os pais na água, criando vínculo e confiança.</p></div>
-        <div class="cartao"><div class="ico">🌡️</div><h3>Piscina aquecida</h3><p>Água tratada e na temperatura ideal para os pequenos.</p></div>
-        <div class="cartao"><div class="ico">🧸</div><h3>Aprender brincando</h3><p>Brinquedos, músicas e circuitos que tornam cada aula uma festa.</p></div>
-      </div>
+  <section class="submersa">
+    <div aria-hidden="true">
+      <span class="bolha" style="left:12%;width:14px;height:14px"></span>
+      <span class="bolha" style="left:38%;width:20px;height:20px;animation-delay:-3s"></span>
+      <span class="bolha" style="left:66%;width:12px;height:12px;animation-delay:-1.5s"></span>
+      <span class="bolha" style="left:88%;width:18px;height:18px;animation-delay:-5s"></span>
+      <div class="nado"><svg viewBox="0 0 160 90"><use href="#golfinho"/></svg></div>
+    </div>
+    <div class="nado n2">
+      <button type="button" class="arisco" id="arisco" aria-label="Tentar pegar o golfinho"><svg viewBox="0 0 160 90" aria-hidden="true"><use href="#golfinho"/></svg></button>
     </div>
   </section>
 
-  <section id="turmas" aria-labelledby="turmas-titulo">
+  <section id="turmas" class="turmas">
     <div class="wrap">
       <div class="titulo">
-        <small>Matrículas abertas</small>
-        <h2 id="turmas-titulo">Turmas disponíveis</h2>
-        <p>Escolha a unidade e encontre o melhor horário para seu filho.</p>
+        <span class="rotulo">Matrículas abertas</span>
+        <h2>Turmas disponíveis</h2>
       </div>
       <div class="filtros" role="group" aria-label="Filtrar por unidade">
-        <button type="button" data-unidade="todas" aria-pressed="true">Todas</button>
+        <button type="button" data-unidade="Todas" aria-pressed="true">Todas</button>
         <button type="button" data-unidade="Cidade Nova" aria-pressed="false">Cidade Nova</button>
         <button type="button" data-unidade="Campos Elíseos" aria-pressed="false">Campos Elíseos</button>
       </div>
-      <div class="grade" id="lista-turmas"></div>
+      <div class="grade" id="lista-turmas" aria-live="polite">
+        <p class="aviso">Carregando turmas…</p>
+      </div>
     </div>
   </section>
 
-  <section id="agendar" class="agenda" aria-labelledby="agendar-titulo">
-    <div class="wrap">
+  <section id="agendar" class="agendar">
+    <div class="agendar-in">
       <div class="titulo">
-        <small>Aula experimental</small>
-        <h2 id="agendar-titulo">Agende uma aula</h2>
-        <p>Preencha os dados e confirmamos pelo WhatsApp.</p>
+        <span class="rotulo">Aula experimental</span>
+        <h2>Agende uma aula</h2>
+        <p>Preencha e confirmamos pelo WhatsApp.</p>
       </div>
-      <form id="form-agenda">
-        <label>Nome do responsável<input name="responsavel" required autocomplete="name"></label>
-        <label>Nome da criança<input name="crianca" required></label>
-        <label>Idade da criança<input name="idade" required placeholder="ex: 3 anos"></label>
-        <label>Unidade
-          <select name="unidade" required>
-            <option>Cidade Nova</option>
-            <option>Campos Elíseos</option>
-          </select>
-        </label>
+      <form class="form" id="form-agenda">
+        <label>Nome do responsável<input name="responsavel" required maxlength="80" autocomplete="name"></label>
+        <label>Nome e idade da criança<input name="crianca" required maxlength="80" placeholder="ex: Davi, 3 anos"></label>
         <label class="cheio">Turma de interesse<select name="turma" id="select-turma" required></select></label>
-        <label class="cheio">Data preferida<input type="date" name="data" required></label>
+        <p class="lgpd">Seus dados não ficam guardados neste site: eles vão direto para a conversa no WhatsApp da escola. Veja a <a href="privacidade.html">política de privacidade</a>.</p>
         <button class="btn btn-sol" type="submit">Enviar pelo WhatsApp</button>
       </form>
     </div>
-  </section>
-
-  <section id="unidades" class="claro" aria-labelledby="unidades-titulo">
-    <div class="wrap">
-      <div class="titulo">
-        <small>Onde estamos</small>
-        <h2 id="unidades-titulo">Nossas unidades</h2>
-      </div>
-      <div class="grade">
-        <div class="unidade"><div class="capa">Cidade Nova</div><div>📍 Endereço da unidade<br>🕐 Seg a Sáb · 7h às 20h</div></div>
-        <div class="unidade"><div class="capa">Campos Elíseos</div><div>📍 Endereço da unidade<br>🕐 Seg a Sáb · 7h às 20h</div></div>
-      </div>
+    <div class="ondas" aria-hidden="true">
+      <svg class="onda o3" fill="#1e88e5"><use href="#onda-1"/></svg>
+      <svg class="onda o2" fill="#0b4fb3"><use href="#onda-2"/></svg>
+      <svg class="onda" fill="#0b4fb3"><use href="#onda-3"/></svg>
     </div>
   </section>
 </main>
 
 <footer>
-  <div class="wrap">
-    <a class="logo" href="#">Acqua <span>Azul</span></a>
-    <p>Natação para bebês e infantil · Manaus/AM · desde 2014</p>
-    <p><a href="https://instagram.com/acquazulnatacaomanaus">@acquazulnatacaomanaus</a></p>
-  </div>
+  <a class="logo" href="#topo">Acqua <span>Azul</span></a>
+  <p>Natação para bebês e infantil · Unidades Cidade Nova e Campos Elíseos · Manaus/AM</p>
+  <p><a href="https://instagram.com/acquazulnatacaomanaus" rel="noopener">@acquazulnatacaomanaus</a> · <a href="privacidade.html">Privacidade</a></p>
 </footer>
 
-<script>
-  // shortcut: turmas e número fixos no código; trocar por planilha/painel quando a dona precisar editar sozinha
-  const WHATSAPP = "5592900000000";
-  const TURMAS = [
-    { nome: "Bebês", idade: "6 meses a 2 anos", unidade: "Cidade Nova", dias: "Ter e Qui", horario: "9h00", vagas: 2, total: 8 },
-    { nome: "Baby Kids", idade: "2 a 4 anos", unidade: "Cidade Nova", dias: "Seg e Qua", horario: "16h00", vagas: 5, total: 8 },
-    { nome: "Infantil I", idade: "5 a 7 anos", unidade: "Cidade Nova", dias: "Seg, Qua e Sex", horario: "17h00", vagas: 4, total: 10 },
-    { nome: "Bebês", idade: "6 meses a 2 anos", unidade: "Campos Elíseos", dias: "Sáb", horario: "8h00", vagas: 3, total: 8 },
-    { nome: "Infantil II", idade: "8 a 12 anos", unidade: "Campos Elíseos", dias: "Ter e Qui", horario: "18h00", vagas: 6, total: 10 },
-    { nome: "Salva Vidas Kids", idade: "6 a 12 anos", unidade: "Campos Elíseos", dias: "Sáb", horario: "10h00", vagas: 1, total: 12 },
-  ];
-
-  const lista = document.getElementById("lista-turmas");
-  const selectTurma = document.getElementById("select-turma");
-
-  function render(filtro) {
-    lista.innerHTML = TURMAS.filter(t => filtro === "todas" || t.unidade === filtro).map(t => `
-      <article class="turma">
-        <div class="topo"><h3>${t.nome}</h3><span class="tag">${t.unidade}</span></div>
-        <ul><li>${t.idade}</li><li>${t.dias} · ${t.horario}</li></ul>
-        <div class="vagas" aria-hidden="true"><i style="width:${100 - t.vagas / t.total * 100}%"></i></div>
-        <span class="vagas-txt ${t.vagas <= 2 ? "poucas" : ""}">${t.vagas <= 2 ? "Últimas " : ""}${t.vagas} vaga${t.vagas > 1 ? "s" : ""}</span>
-        <a class="btn" href="#agendar" data-turma="${t.nome} – ${t.unidade} – ${t.dias} ${t.horario}">Quero essa turma</a>
-      </article>`).join("");
-  }
-
-  document.querySelectorAll(".filtros button").forEach(b => b.addEventListener("click", () => {
-    document.querySelectorAll(".filtros button").forEach(x => x.setAttribute("aria-pressed", x === b));
-    render(b.dataset.unidade);
-  }));
-
-  selectTurma.innerHTML = TURMAS.map(t => {
-    const v = `${t.nome} – ${t.unidade} – ${t.dias} ${t.horario}`;
-    return `<option>${v}</option>`;
-  }).join("");
-
-  // clicar em "Quero essa turma" já preenche o formulário
-  lista.addEventListener("click", e => {
-    const a = e.target.closest("[data-turma]");
-    if (!a) return;
-    selectTurma.value = a.dataset.turma;
-    document.querySelector('[name="unidade"]').value = a.dataset.turma.split(" – ")[1];
-  });
-
-  document.querySelector('[name="data"]').min = new Date().toISOString().slice(0, 10);
-
-  document.getElementById("form-agenda").addEventListener("submit", e => {
-    e.preventDefault();
-    const d = Object.fromEntries(new FormData(e.target));
-    const data = d.data.split("-").reverse().join("/");
-    const msg = `Olá! Gostaria de agendar uma aula experimental.\nResponsável: ${d.responsavel}\nCriança: ${d.crianca} (${d.idade})\nUnidade: ${d.unidade}\nTurma: ${d.turma}\nData: ${data}`;
-    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
-  });
-
-  render("todas");
-</script>
+<script src="config.js"></script>
+<script src="site.js"></script>
 </body>
 </html>
