@@ -83,4 +83,34 @@ document.querySelectorAll(".arisco").forEach((arisco) => {
   arisco.addEventListener("click", fugir);
 });
 
+// Patinhos de borracha boiando na onda do meio (onda-2: y = 70 − 20·sen(2πu/960), em unidades do viewBox 2880×120;
+// anda ao contrário em 9 s). A da frente fica escondida atrás dos cartões de números.
+document.querySelectorAll(".ondas").forEach((ondas) => {
+  const onda = ondas.querySelector(".onda.o2");
+  const patos = [...ondas.querySelectorAll(".pato")].map((el) => ({ el, x: null, vel: Number(el.dataset.vel) }));
+  if (!onda || !patos.length) return;
+  const anim = onda.getAnimations()[0];
+  let antes = performance.now();
+  const passo = (agora) => {
+    const dt = Math.min(agora - antes, 100) / 1000;
+    antes = agora;
+    const larg = ondas.clientWidth, largOnda = onda.getBoundingClientRect().width;
+    const desloc = anim && anim.currentTime != null ? -(1 - (anim.currentTime % 9000) / 9000) * (largOnda / 2) : 0;
+    const k = 2880 / largOnda; // unidades da onda por px
+    for (const p of patos) {
+      const w = p.el.clientWidth, h = p.el.clientHeight;
+      if (p.x === null) p.x = (Number(p.el.dataset.x) / 100) * larg;
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) p.x += p.vel * dt;
+      if (p.x > larg + w) p.x = -w;
+      const u = (p.x + w / 2 - desloc) * k;
+      const ang = (2 * Math.PI * u) / 960;
+      const y = 70 - 20 * Math.sin(ang);
+      const incl = Math.atan(-20 * Math.cos(ang) * ((2 * Math.PI) / 960) * k);
+      p.el.style.transform = `translate(${p.x}px, ${y - h * 0.8}px) rotate(${incl}rad)`;
+    }
+    requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
+});
+
 carregar();

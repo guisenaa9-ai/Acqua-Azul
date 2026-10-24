@@ -53,6 +53,9 @@ header nav a { color: #fff; text-decoration: none; }
 .onda.o2 { animation-duration: 9s; animation-direction: reverse; opacity: .55; }
 .onda.o3 { animation-duration: 20s; opacity: .35; }
 @keyframes correr { to { transform: translateX(-50%); } }
+/* posição e inclinação vêm do site.js, que acompanha a onda da frente */
+.pato { position: absolute; left: 0; top: 0; width: 46px; height: 38px; transform-origin: 50% 85%; }
+@media (max-width: 600px) { .pato { width: 34px; height: 28px; } }
 .bolha { position: absolute; bottom: -20px; border-radius: 50%; border: 2px solid rgba(255,255,255,.55); background: rgba(255,255,255,.12); animation: bolha 7s linear infinite; }
 @keyframes bolha { 0% { transform: translate(0,0); opacity: 0; } 10% { opacity: 1; } 50% { transform: translate(14px,-260px); } 100% { transform: translate(-6px,-520px); opacity: 0; } }
 
