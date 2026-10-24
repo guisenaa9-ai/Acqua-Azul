@@ -7,7 +7,7 @@ Site estático (HTML, CSS e JS puros, sem build), hospedado na Vercel. As turmas
 | Arquivo | O que é |
 | --- | --- |
 | `index.html`, `styles.css`, `site.js` | Site público. Lê as turmas ativas do Supabase. |
-| `admin.html`, `admin.css`, `admin.js` | Painel em `/admin`: login e edição das turmas. |
+| `admin.html`, `admin.css`, `admin.js` | Painel em `/admin`: resumo, turmas, textos, história, avisos e fotos. |
 | `privacidade.html` | Política de privacidade (LGPD). |
 | `config.js` | URL e chave pública do Supabase, número do WhatsApp. |
 | `vercel.json` | Cabeçalhos de segurança (CSP etc.). |
@@ -16,7 +16,9 @@ Site estático (HTML, CSS e JS puros, sem build), hospedado na Vercel. As turmas
 ## Segurança
 
 - A chave em `config.js` é a publishable: pública por desenho. Quem protege os dados são as regras RLS do banco.
-- Visitantes só leem turmas com `ativa = true`. Criar, editar e apagar exige login **e** estar na tabela `admins`.
+- Tabelas: `turmas`, `conteudo` (textos soltos), `marcos` (história), `avisos`, `fotos` + bucket público `fotos`.
+- Visitantes só leem o que está ativo/vigente. Criar, editar e apagar exige login **e** estar na tabela `admins`.
+- Fotos são reduzidas no navegador (máx. 1600 px, JPEG) antes do upload; o bucket aceita só JPEG/WebP até 3 MB.
 - O formulário de agendamento não envia nada a servidor: só monta a mensagem do WhatsApp.
 
 ## Dar acesso de admin a alguém

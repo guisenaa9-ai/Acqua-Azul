@@ -1,4 +1,5 @@
-const { supabaseUrl, supabaseKey, whatsapp } = window.ACQUA;
+const { supabaseUrl, supabaseKey } = window.ACQUA;
+let whatsapp = window.ACQUA.whatsapp;
 const lista = document.getElementById("lista-turmas");
 const selectTurma = document.getElementById("select-turma");
 let turmas = [];
@@ -27,13 +28,51 @@ function render() {
   }).join("");
 }
 
+async function api(consulta) {
+  const r = await fetch(`${supabaseUrl}/rest/v1/${consulta}`, { headers: { apikey: supabaseKey } });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+// Textos, história, aviso e fotos editados no painel. Se falhar, ficam os textos que já estão no HTML.
+async function carregarConteudo() {
+  document.querySelectorAll("[data-mapa]").forEach((a) => (a.hidden = true));
+  const [conteudo, marcos, avisos, fotos] = await Promise.all([
+    api("conteudo?select=chave,valor"),
+    api("marcos?select=ano,titulo,texto&order=ordem,id"),
+    api("avisos?select=texto&order=criado_em.desc&limit=1"), // as regras do banco só devolvem avisos vigentes
+    api("fotos?select=caminho,legenda&order=ordem,id")
+  ]);
+  const c = Object.fromEntries(conteudo.map((x) => [x.chave, x.valor]));
+  document.querySelectorAll("[data-conteudo]").forEach((el) => {
+    if (c[el.dataset.conteudo]) el.textContent = c[el.dataset.conteudo];
+  });
+  if (/^\d{12,13}$/.test(c.whatsapp || "")) whatsapp = c.whatsapp;
+  document.querySelectorAll("[data-mapa]").forEach((a) => {
+    const end = c[a.dataset.mapa];
+    if (!end || end.startsWith("[")) return;
+    a.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(end + ", Manaus - AM")}`;
+    a.hidden = false;
+  });
+  document.getElementById("linha-historia").innerHTML = marcos
+    .map((m) => `<div class="marco"><b>${esc(m.ano)}</b><h3>${esc(m.titulo)}</h3><p>${esc(m.texto)}</p></div>`)
+    .join("");
+  const aviso = document.getElementById("aviso-topo");
+  if (avisos[0]) {
+    aviso.textContent = avisos[0].texto;
+    aviso.hidden = false;
+  }
+  if (fotos.length) {
+    document.getElementById("lista-fotos").innerHTML = fotos
+      .map((f) => `<figure><img src="${supabaseUrl}/storage/v1/object/public/fotos/${esc(f.caminho)}" alt="${esc(f.legenda || "Foto da Acqua Azul")}" loading="lazy">${f.legenda ? `<figcaption>${esc(f.legenda)}</figcaption>` : ""}</figure>`)
+      .join("");
+    document.getElementById("galeria").hidden = false;
+  }
+}
+
 async function carregar() {
   try {
-    const r = await fetch(`${supabaseUrl}/rest/v1/turmas?select=id,nome,idade,unidade,dias,horario,vagas,total&ativa=eq.true&order=ordem,id`, {
-      headers: { apikey: supabaseKey }
-    });
-    if (!r.ok) throw new Error(r.status);
-    turmas = await r.json();
+    turmas = await api("turmas?select=id,nome,idade,unidade,dias,horario,vagas,total&ativa=eq.true&order=ordem,id");
     selectTurma.innerHTML = turmas.map((t) => `<option value="${t.id}">${esc(rotulo(t))}</option>`).join("") + `<option value="">Ainda não sei / quero ajuda para escolher</option>`;
     render();
   } catch {
@@ -114,3 +153,4 @@ document.querySelectorAll(".ondas").forEach((ondas) => {
 });
 
 carregar();
+carregarConteudo().catch(() => {});

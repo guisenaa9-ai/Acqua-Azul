@@ -11,6 +11,7 @@
   --raio: 20px;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
 body { margin: 0; font-family: "Nunito", system-ui, sans-serif; color: var(--texto); background: #fff; line-height: 1.6; }
 h1, h2, h3 { font-family: "Baloo 2", "Nunito", sans-serif; line-height: 1.1; margin: 0; }
@@ -20,7 +21,7 @@ a { color: var(--mar); }
 .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
 .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 14px 28px; border-radius: 999px; font: 800 1rem "Nunito", sans-serif; text-decoration: none; border: 2px solid transparent; cursor: pointer; }
 .btn-sol { background: var(--sol); color: var(--abismo); }
-.btn-borda { border-color: #fff; color: #fff; }
+.btn-borda { border-color: #fff; color: #fff; background: transparent; }
 .btn-mar { background: var(--mar); color: #fff; }
 .rotulo { color: var(--mar); font-weight: 800; letter-spacing: .12em; font-size: 14px; text-transform: uppercase; }
 .titulo { text-align: center; display: flex; flex-direction: column; gap: 8px; margin-bottom: 40px; }
@@ -141,3 +142,17 @@ footer a { color: #fff; font-weight: 800; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
 }
+
+/* Aviso, galeria e unidades (conteúdo vindo do painel) */
+.aviso-topo { background: var(--sol); color: var(--abismo); text-align: center; padding: 10px 16px; font-weight: 800; }
+.galeria { padding: 96px 0; }
+.fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.fotos figure { margin: 0; border-radius: var(--raio); overflow: hidden; background: var(--espuma); }
+.fotos img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.fotos figcaption { padding: 10px 14px; color: var(--suave); font-weight: 600; font-size: 15px; }
+.unidades { padding: 96px 0; }
+.titulo p { color: var(--suave); }
+.unidade { background: var(--espuma); border-radius: var(--raio); padding: 28px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.unidade h3 { font-size: 26px; color: var(--abismo); }
+.unidade p { color: var(--suave); }
+.unidades .grade { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }

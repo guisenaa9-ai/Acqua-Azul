@@ -17,6 +17,17 @@
   </div>
 </header>
 
+<nav class="abas" id="abas" aria-label="Seções do painel" hidden>
+  <div class="wrap">
+    <button type="button" data-aba="resumo">Resumo</button>
+    <button type="button" data-aba="turmas">Turmas</button>
+    <button type="button" data-aba="textos">Textos</button>
+    <button type="button" data-aba="marcos">História</button>
+    <button type="button" data-aba="avisos">Avisos</button>
+    <button type="button" data-aba="fotos">Fotos</button>
+  </div>
+</nav>
+
 <main class="admin wrap">
   <section id="tela-login" hidden>
     <form class="form login" id="form-login">
@@ -28,42 +39,50 @@
     </form>
   </section>
 
-  <section id="tela-turmas" hidden>
+  <section data-tela="resumo" hidden>
+    <h1>Resumo</h1>
+    <div class="numeros-admin" id="resumo-numeros"></div>
+    <div id="resumo-listas"></div>
+  </section>
+
+  <section data-tela="turmas" hidden>
+    <div class="admin-topo"><h1>Turmas</h1><button type="button" class="btn btn-sol" data-novo="turmas">+ Nova turma</button></div>
+    <p class="dica">Use <b>−</b> e <b>+</b> para mudar as vagas na hora. Para mudar o resto, edite e toque em <b>Salvar</b>. Turma desmarcada em "Aparece no site" some do site, mas fica guardada aqui.</p>
+    <p class="erro" role="alert"></p>
+    <div class="admin-lista" data-lista="turmas"></div>
+  </section>
+
+  <section data-tela="textos" hidden>
+    <h1>Textos do site</h1>
+    <p class="dica">Troque o que quiser e toque em <b>Salvar textos</b> no fim da página. Campos com [colchetes] ainda estão com texto provisório.</p>
+    <form class="admin-cartao textos" id="form-textos"></form>
+  </section>
+
+  <section data-tela="marcos" hidden>
+    <div class="admin-topo"><h1>Nossa história</h1><button type="button" class="btn btn-sol" data-novo="marcos">+ Novo marco</button></div>
+    <p class="dica">Cada marco é um ponto da linha do tempo. <b>Ordem</b> define a posição: o menor número aparece primeiro.</p>
+    <p class="erro" role="alert"></p>
+    <div class="admin-lista" data-lista="marcos"></div>
+  </section>
+
+  <section data-tela="avisos" hidden>
+    <div class="admin-topo"><h1>Avisos</h1><button type="button" class="btn btn-sol" data-novo="avisos">+ Novo aviso</button></div>
+    <p class="dica">O aviso aparece numa faixa amarela no topo do site. Se tiver mais de um valendo, aparece o mais recente. Em <b>Mostrar até</b>, ele some sozinho depois desse dia; deixe vazio para não ter prazo.</p>
+    <p class="erro" role="alert"></p>
+    <div class="admin-lista" data-lista="avisos"></div>
+  </section>
+
+  <section data-tela="fotos" hidden>
     <div class="admin-topo">
-      <h1>Turmas</h1>
-      <button type="button" class="btn btn-sol" id="nova">+ Nova turma</button>
+      <h1>Fotos</h1>
+      <label class="btn btn-sol enviar">+ Enviar fotos<input type="file" id="enviar-fotos" accept="image/*" multiple></label>
     </div>
-    <p class="dica">Use <b>−</b> e <b>+</b> para mudar as vagas na hora. Para mudar o resto, edite e toque em <b>Salvar</b>. Turma desativada some do site mas fica guardada aqui.</p>
-    <p class="erro" id="erro-turmas" role="alert"></p>
-    <div id="lista" class="admin-lista"></div>
+    <p class="dica">Escolha uma ou várias fotos do celular. Elas são reduzidas antes de subir, para o site continuar rápido. Use fotos em que os pais autorizaram a imagem das crianças.</p>
+    <p class="erro" role="alert"></p>
+    <p class="status" id="status-fotos" role="status"></p>
+    <div class="admin-lista fotos-admin" data-lista="fotos"></div>
   </section>
 </main>
-
-<template id="tpl-turma">
-  <form class="admin-cartao">
-    <div class="vagas-ctrl">
-      <button type="button" class="btn-redondo" data-acao="menos" aria-label="Uma vaga a menos">−</button>
-      <div><strong data-campo="vagasTxt"></strong><span>vagas livres</span></div>
-      <button type="button" class="btn-redondo" data-acao="mais" aria-label="Uma vaga a mais">+</button>
-    </div>
-    <div class="campos">
-      <label>Nome da turma<input name="nome" required maxlength="60"></label>
-      <label>Unidade<select name="unidade"><option>Cidade Nova</option><option>Campos Elíseos</option></select></label>
-      <label>Idade<input name="idade" required maxlength="60" placeholder="ex: 2 a 4 anos"></label>
-      <label>Dias<input name="dias" required maxlength="60" placeholder="ex: Seg e Qua"></label>
-      <label>Horário<input name="horario" required maxlength="20" placeholder="ex: 16h"></label>
-      <label>Vagas livres<input name="vagas" type="number" min="0" required></label>
-      <label>Total de vagas<input name="total" type="number" min="1" required></label>
-      <label>Ordem no site<input name="ordem" type="number"></label>
-      <label class="check"><input name="ativa" type="checkbox"> Aparece no site</label>
-    </div>
-    <div class="botoes">
-      <button type="submit" class="btn btn-mar">Salvar</button>
-      <button type="button" class="btn btn-apagar" data-acao="apagar">Apagar</button>
-      <span class="status" role="status"></span>
-    </div>
-  </form>
-</template>
 
 <script src="vendor/supabase.js"></script>
 <script src="config.js"></script>

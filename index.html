@@ -42,12 +42,15 @@
   </defs>
 </svg>
 
+<div class="aviso-topo" id="aviso-topo" role="status" hidden></div>
+
 <header>
   <div class="wrap">
     <a class="logo" href="#topo">Acqua <span>Azul</span></a>
     <nav aria-label="Principal">
       <a href="#historia">Nossa história</a>
       <a href="#turmas">Turmas</a>
+      <a href="#unidades">Unidades</a>
       <a href="#agendar">Agendar</a>
     </nav>
   </div>
@@ -66,7 +69,7 @@
       <div class="hero-texto">
         <span class="selo">NATAÇÃO PARA BEBÊS E INFANTIL · MANAUS</span>
         <h1>Aqui tem natação e <em>muita diversão</em></h1>
-        <p>Desde 2014 ensinando crianças a nadar com segurança, carinho e alegria. Do primeiro mergulho do bebê ao nado completo.</p>
+        <p data-conteudo="hero_texto">Desde 2014 ensinando crianças a nadar com segurança, carinho e alegria. Do primeiro mergulho do bebê ao nado completo.</p>
         <div class="acoes">
           <a class="btn btn-sol" href="#agendar">Agendar aula experimental</a>
           <a class="btn btn-borda" href="#turmas">Ver turmas abertas</a>
@@ -88,10 +91,10 @@
 
   <section class="numeros" aria-label="A Acqua Azul em números">
     <div class="wrap">
-      <div class="numero"><strong>2014</strong><span>desde</span></div>
+      <div class="numero"><strong data-conteudo="desde">2014</strong><span>desde</span></div>
       <div class="numero"><strong>2</strong><span>unidades</span></div>
-      <div class="numero"><strong>[IDADE]</strong><span>idade inicial</span></div>
-      <div class="numero"><strong>23 mil</strong><span>famílias nos seguem</span></div>
+      <div class="numero"><strong data-conteudo="idade_inicial">[IDADE]</strong><span>idade inicial</span></div>
+      <div class="numero"><strong data-conteudo="seguidores">23 mil</strong><span>famílias nos seguem</span></div>
     </div>
   </section>
 
@@ -100,12 +103,7 @@
       <span class="rotulo">Nossa história</span>
       <h2>Mais de 10 anos dentro d'água</h2>
     </div>
-    <!-- Textos provisórios: substituir pela história real contada pela dona -->
-    <div class="linha">
-      <div class="marco"><b>2014</b><h3>O primeiro mergulho</h3><p>[História da fundação contada pela dona]</p></div>
-      <div class="marco"><b>[ANO]</b><h3>Natação Salva Vidas</h3><p>[Como nasceu o programa de segurança aquática]</p></div>
-      <div class="marco"><b>Hoje</b><h3>Cidade Nova e Campos Elíseos</h3><p>Duas unidades e muitas crianças que aprenderam a amar a água com a gente.</p></div>
-    </div>
+    <div class="linha" id="linha-historia"></div>
   </section>
 
   <section class="submersa">
@@ -123,6 +121,16 @@
     </div>
   </section>
 
+  <section id="galeria" class="galeria" hidden>
+    <div class="wrap">
+      <div class="titulo">
+        <span class="rotulo">Nosso dia a dia</span>
+        <h2>Fotos da Acqua Azul</h2>
+      </div>
+      <div class="fotos" id="lista-fotos"></div>
+    </div>
+  </section>
+
   <section id="turmas" class="turmas">
     <div class="wrap">
       <div class="titulo">
@@ -136,6 +144,20 @@
       </div>
       <div class="grade" id="lista-turmas" aria-live="polite">
         <p class="aviso">Carregando turmas…</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="unidades" class="unidades">
+    <div class="wrap">
+      <div class="titulo">
+        <span class="rotulo">Onde estamos</span>
+        <h2>Nossas unidades</h2>
+        <p data-conteudo="horario">[Dias e horário de funcionamento]</p>
+      </div>
+      <div class="grade">
+        <div class="unidade"><h3>Cidade Nova</h3><p data-conteudo="end_cidade_nova">[Endereço da unidade Cidade Nova]</p><a class="btn btn-mar" data-mapa="end_cidade_nova" href="#" rel="noopener" target="_blank">Ver no mapa</a></div>
+        <div class="unidade"><h3>Campos Elíseos</h3><p data-conteudo="end_campos_eliseos">[Endereço da unidade Campos Elíseos]</p><a class="btn btn-mar" data-mapa="end_campos_eliseos" href="#" rel="noopener" target="_blank">Ver no mapa</a></div>
       </div>
     </div>
   </section>
