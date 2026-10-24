@@ -56,26 +56,6 @@ header nav a { color: #fff; text-decoration: none; }
 .bolha { position: absolute; bottom: -20px; border-radius: 50%; border: 2px solid rgba(255,255,255,.55); background: rgba(255,255,255,.12); animation: bolha 7s linear infinite; }
 @keyframes bolha { 0% { transform: translate(0,0); opacity: 0; } 10% { opacity: 1; } 50% { transform: translate(14px,-260px); } 100% { transform: translate(-6px,-520px); opacity: 0; } }
 
-/* Salto em parábola: x linear, y desacelera na subida e acelera na descida, giro segue a tangente */
-.salto-alvo { position: absolute; left: 8%; bottom: 70px; }
-.salto { width: 150px; animation: salto-x 3.4s linear infinite; }
-.salto-y { animation: salto-y 3.4s infinite; }
-.salto-r { display: block; width: 150px; animation: salto-r 3.4s linear infinite; }
-@keyframes salto-x { 0% { transform: translateX(0); } 80%, 100% { transform: translateX(340px); } }
-@keyframes salto-x-cel { 0% { transform: translateX(0); } 80%, 100% { transform: translateX(220px); } }
-@keyframes salto-y {
-  0% { transform: translateY(120px); opacity: 0; animation-timing-function: cubic-bezier(.5,1,.89,1); }
-  6% { opacity: 1; }
-  40% { transform: translateY(-40px); animation-timing-function: cubic-bezier(.11,0,.5,0); }
-  74% { opacity: 1; }
-  80%, 100% { transform: translateY(120px); opacity: 0; }
-}
-@keyframes salto-r { 0% { transform: rotate(-55deg); } 10% { transform: rotate(-47deg); } 20% { transform: rotate(-35deg); } 30% { transform: rotate(-20deg); } 40% { transform: rotate(0); } 50% { transform: rotate(20deg); } 60% { transform: rotate(35deg); } 70% { transform: rotate(47deg); } 80%, 100% { transform: rotate(55deg); } }
-.respingo { position: absolute; bottom: 62px; width: 70px; height: 22px; border-radius: 50%; border: 3px solid #fff; opacity: 0; animation: respingo 3.4s cubic-bezier(.22,1,.36,1) infinite; }
-.respingo.r1 { left: calc(8% + 40px); }
-.respingo.r2 { left: calc(8% + 380px); animation-delay: 2.6s; }
-@keyframes respingo { 0% { transform: scale(.3); opacity: .8; } 30% { transform: scale(1.8); opacity: 0; } 100% { opacity: 0; } }
-
 /* Faixa submersa */
 .submersa { position: relative; height: 240px; overflow: hidden; background: var(--piscina); }
 .nado { position: absolute; top: 32%; left: 0; width: 130px; animation: nadar 20s linear infinite; }
@@ -153,13 +133,8 @@ footer a { color: #fff; font-weight: 800; }
   .mascote svg { width: 150px; }
   .titulo h2 { font-size: 32px; }
   header nav { gap: 16px; font-size: 15px; }
-  .salto-alvo { left: 4%; }
-  .salto { width: 110px; animation-name: salto-x-cel; }
-  .salto-r { width: 110px; }
-  .respingo.r2 { left: calc(4% + 220px); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
-  .salto-alvo, .respingo { display: none; }
 }
