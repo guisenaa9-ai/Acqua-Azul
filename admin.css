@@ -101,3 +101,7 @@
 .docs [aria-disabled] { opacity: .45; cursor: not-allowed; }
 #ficha-responsaveis { margin-top: 28px; }
 #ficha-responsaveis h2 { color: var(--abismo); font-size: 26px; }
+.pilulas { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.pilula.incompleta { background: #fff4d6; color: #7a5300; }
+.contagem { display: inline-block; margin-left: 4px; font-weight: 800; color: var(--alerta); }
+.contagem.ok { color: #1d6b34; }

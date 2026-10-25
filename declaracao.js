@@ -8,11 +8,11 @@ const cpfBonito = (c) => (c && c.length === 11 ? `${c.slice(0, 3)}.${c.slice(3, 
 const TIPOS = {
   matricula: {
     titulo: "DECLARAÇÃO DE MATRÍCULA",
-    texto: (d) => `Declaramos, para os devidos fins, que <b>${d.aluno}</b>${d.nasc}, está regularmente matriculado(a) na ${d.escola}${d.turma}, desde ${d.inicio}.`
+    texto: (d) => `Declaramos, para os devidos fins, que <b>${d.aluno}</b>${d.nasc}${d.filiacao}, está regularmente matriculado(a) na ${d.escola}${d.turma}, desde ${d.inicio}.`
   },
   frequencia: {
     titulo: "DECLARAÇÃO DE FREQUÊNCIA",
-    texto: (d) => `Declaramos, para os devidos fins, que <b>${d.aluno}</b>${d.nasc}, frequenta as aulas de natação da ${d.escola}${d.turma}, desde ${d.inicio}.`
+    texto: (d) => `Declaramos, para os devidos fins, que <b>${d.aluno}</b>${d.nasc}${d.filiacao}, frequenta as aulas de natação da ${d.escola}${d.turma}, desde ${d.inicio}.`
   }
 };
 
@@ -37,6 +37,7 @@ async function montar() {
   if (!aluno.data) return mostrarDica("Aluno não encontrado, ou sua conta não tem acesso.");
   const a = aluno.data;
   if (a.status !== "ativa") return mostrarDica("Esta matrícula não está ativa, então a declaração não pode ser emitida.");
+  if (!a.nome_mae || !a.nome_pai || a.responsaveis.length < 3) return mostrarDica("A ficha do aluno está incompleta: precisa do nome da mãe, do pai e de pelo menos 3 responsáveis.");
 
   const e = Object.fromEntries(conteudo.data.map((x) => [x.chave, x.valor]));
   const faltando = ["escola_razao", "escola_cnpj", "escola_endereco", "escola_responsavel"].filter((k) => !e[k] || e[k].startsWith("["));
@@ -50,6 +51,7 @@ async function montar() {
   const d = {
     aluno: esc(a.nome),
     nasc: a.nascimento ? `, nascido(a) em ${dataBr(a.nascimento)}` : "",
+    filiacao: ((pais) => (pais.length ? `, filho(a) de ${pais.map(esc).join(" e ")}` : ""))([a.nome_mae, a.nome_pai].filter((n) => n && !/^n[ãa]o declarado$/i.test(n.trim()))),
     escola: `${esc(e.escola_razao)} (Acqua Azul Natação), inscrita no CNPJ ${esc(e.escola_cnpj)}`,
     turma: t ? `, na turma ${esc(t.nome)}, com aulas às ${esc(t.dias)}, ${esc(t.horario)}, na unidade ${esc(t.unidade)}` : "",
     inicio: dataBr(a.inicio)

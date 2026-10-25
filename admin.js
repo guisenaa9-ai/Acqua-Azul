@@ -21,6 +21,8 @@ function cpfValido(c) {
 }
 const STATUS_ALUNO = [["ativa", "Matrícula ativa"], ["trancada", "Trancada"], ["cancelada", "Cancelada"]];
 let turmasCache = [];
+let planosCache = [];
+const MIN_RESPONSAVEIS = 3;
 const rotuloTurma = (t) => `${t.nome} – ${t.unidade} – ${t.dias} ${t.horario}`;
 
 // Campos de cada tabela editável. t: tipo do campo; r: rótulo.
@@ -119,10 +121,17 @@ const TABELAS = {
     campos: [
       { n: "nome", r: "Nome do aluno", max: 100, req: true },
       { n: "nascimento", r: "Data de nascimento", t: "date" },
+      { n: "nome_mae", r: "Nome da mãe", max: 100, req: true, ajuda: "Se não houver, escreva \"Não declarado\"." },
+      { n: "nome_pai", r: "Nome do pai", max: 100, req: true, ajuda: "Se não houver, escreva \"Não declarado\"." },
       { n: "turma_id", r: "Turma", t: "select", num: true, op: () => [["", "Sem turma"], ...turmasCache.map((t) => [String(t.id), rotuloTurma(t)])] },
-      { n: "status", r: "Situação da matrícula", t: "select", op: STATUS_ALUNO },
+      { n: "status", r: "Situação da matrícula", t: "select", op: STATUS_ALUNO, soEdicao: true },
       { n: "inicio", r: "Início da matrícula", t: "date", req: true },
-      { n: "plano", r: "Plano", max: 80, ph: "ex: 2x por semana" },
+      { n: "plano", r: "Plano", t: "select", op: (atual) => {
+        if (!planosCache.length) return [["", "Nenhum plano cadastrado"]];
+        const ops = [["", "Escolha o plano"], ...planosCache.map((p) => [p.nome, `${p.nome} – ${p.preco}`])];
+        if (atual && !planosCache.some((p) => p.nome === atual)) ops.push([atual, `${atual} (plano que não está mais ativo)`]);
+        return ops;
+      } },
       { n: "emergencia", r: "Contato de emergência", max: 150, ph: "Nome e telefone" },
       { n: "endereco", r: "Endereço", t: "textarea", max: 300, largo: true },
       { n: "observacoes", r: "Observações (ex.: alergias ou cuidados especiais, só se necessário)", t: "textarea", max: 1000, largo: true }
@@ -131,7 +140,11 @@ const TABELAS = {
   responsaveis: {
     fixos: ["aluno_id"],
     nome: (x) => x.nome,
-    recarregar: () => carregarResponsaveis(fichaAtual.id),
+    aoCriar: (r, form) => {
+      form.replaceWith(cartao("responsaveis", r));
+      atualizarResponsaveis();
+    },
+    aoApagar: () => atualizarResponsaveis(),
     validar: (x) => (x.cpf && !cpfValido(x.cpf) ? "CPF inválido. Confira os números." : x.telefone && !/^\d{10,13}$/.test(x.telefone) ? "Confira o telefone com DDD." : ""),
     campos: [
       { n: "nome", r: "Nome", max: 100, req: true },
@@ -176,7 +189,7 @@ function criarCampo(def, valor) {
   let input;
   if (def.t === "select") {
     input = document.createElement("select");
-    (typeof def.op === "function" ? def.op() : def.op).forEach((o) => (Array.isArray(o) ? input.add(new Option(o[1], o[0])) : input.add(new Option(o))));
+    (typeof def.op === "function" ? def.op(valor) : def.op).forEach((o) => (Array.isArray(o) ? input.add(new Option(o[1], o[0])) : input.add(new Option(o))));
   } else if (def.t === "textarea") {
     input = document.createElement("textarea");
     input.rows = 3;
@@ -210,6 +223,7 @@ function lerCampos(form, campos) {
   const dados = {};
   for (const c of campos) {
     const el = form.elements[c.n];
+    if (!el) continue;
     if (c.t === "checkbox") dados[c.n] = el.checked;
     else if (c.t === "number") dados[c.n] = Number(el.value) || 0;
     else if (c.t === "date") dados[c.n] = el.value || null;
@@ -259,7 +273,7 @@ function cartao(tabela, item) {
   }
   const campos = document.createElement("div");
   campos.className = "campos";
-  cfg.campos.forEach((c) => campos.append(criarCampo(c, item[c.n])));
+  cfg.campos.forEach((c) => (nova && c.soEdicao) || campos.append(criarCampo(c, item[c.n])));
   const botoes = document.createElement("div");
   botoes.className = "botoes";
   botoes.append(botao("Salvar", "btn-mar", "salvar"), botao("Apagar", "btn-apagar", "apagar"), status);
@@ -287,7 +301,7 @@ function cartao(tabela, item) {
     const { data: salvo, error } = nova ? await sb.from(tabela).insert(dados).select().single() : await sb.from(tabela).update(dados).eq("id", item.id);
     if (error) return avisar(status, "Não salvou. Confira os campos e tente de novo.");
     avisar(status, "Salvo!");
-    if (nova && cfg.aoCriar) return cfg.aoCriar(salvo);
+    if (nova && cfg.aoCriar) return cfg.aoCriar(salvo, form);
     cfg.aoSalvar?.(dados);
     if (dados.status) {
       form.dataset.status = dados.status;
@@ -467,15 +481,19 @@ async function carregarAlunos() {
   voltarParaAlunos();
   const erro = tela("alunos").querySelector(".erro");
   erro.textContent = "";
-  const [turmas, alunos] = await Promise.all([
+  const [turmas, alunos, planos] = await Promise.all([
     sb.from("turmas").select("id,nome,unidade,dias,horario").order("ordem").order("id"),
-    sb.from("alunos").select("id,nome,nascimento,status,turma_id").order("nome")
+    sb.from("alunos").select("id,nome,nascimento,status,turma_id,nome_pai,nome_mae,responsaveis(count)").order("nome"),
+    sb.from("planos").select("nome,preco").eq("ativo", true).order("ordem").order("id")
   ]);
   if (turmas.error || alunos.error) return (erro.textContent = "Não foi possível carregar. Recarregue a página.");
   turmasCache = turmas.data;
+  planosCache = planos.data || [];
   alunosCache = alunos.data;
   listarAlunos();
 }
+
+const fichaIncompleta = (a) => !a.nome_pai || !a.nome_mae || (a.responsaveis?.[0]?.count ?? 0) < MIN_RESPONSAVEIS;
 
 function listarAlunos() {
   const busca = $("busca-alunos").value.trim().toLowerCase();
@@ -487,7 +505,7 @@ function listarAlunos() {
     ? vis.map((a) => `<button type="button" class="linha-aluno" data-id="${a.id}">
         <span class="la-nome">${esc(a.nome)}<small>${esc(idade(a.nascimento))}</small></span>
         <span class="la-turma">${turma(a.turma_id) ? esc(rotuloTurma(turma(a.turma_id))) : "Sem turma"}</span>
-        <span class="pilula ${a.status}">${nomeStatus[a.status]}</span>
+        <span class="pilulas">${fichaIncompleta(a) ? '<span class="pilula incompleta">Ficha incompleta</span>' : ""}<span class="pilula ${a.status}">${nomeStatus[a.status]}</span></span>
       </button>`).join("")
     : `<p class="dica">${alunosCache.length ? "Nenhum aluno encontrado com esse filtro." : "Nenhum aluno cadastrado ainda. Toque em + Novo aluno."}</p>`;
 }
@@ -513,16 +531,20 @@ function atualizarCabecalhoFicha(d) {
   $("ficha-titulo").textContent = d.nome || "Novo aluno";
   const salvo = Boolean(fichaAtual?.id);
   const ativa = (d.status ?? fichaAtual?.status) === "ativa";
+  const faltam = Math.max(0, MIN_RESPONSAVEIS - respSalvos());
+  const liberado = ativa && !faltam;
   $("ficha-docs").hidden = !salvo;
   document.querySelectorAll("[data-doc]").forEach((a) => {
     a.href = `declaracao?aluno=${fichaAtual?.id}&tipo=${a.dataset.doc}`;
-    a.toggleAttribute("aria-disabled", !ativa);
+    a.toggleAttribute("aria-disabled", !liberado);
   });
-  $("docs-aviso").hidden = ativa;
+  $("docs-aviso").textContent = !ativa ? "As declarações só podem ser emitidas com a matrícula ativa." : `Para emitir as declarações, cadastre pelo menos ${MIN_RESPONSAVEIS} responsáveis (falta${faltam > 1 ? "m" : ""} ${faltam}).`;
+  $("docs-aviso").hidden = !salvo || liberado;
 }
 
 function abrirFicha(aluno) {
   fichaAtual = aluno;
+  $("lista-responsaveis").replaceChildren();
   $("alunos-lista").hidden = true;
   $("aluno-ficha").hidden = false;
   $("ficha-form").replaceChildren(cartao("alunos", aluno));
@@ -532,16 +554,28 @@ function abrirFicha(aluno) {
   window.scrollTo(0, 0);
 }
 
+const respSalvos = () => $("lista-responsaveis").querySelectorAll(".admin-cartao:not(.nova)").length;
+
 async function carregarResponsaveis(alunoId) {
   const { data, error } = await sb.from("responsaveis").select("*").eq("aluno_id", alunoId).order("id");
   if (error) return ($("lista-responsaveis").innerHTML = '<p class="erro">Não foi possível carregar os responsáveis.</p>');
   $("lista-responsaveis").replaceChildren(...data.map((r) => cartao("responsaveis", r)));
-  if (!data.length) $("lista-responsaveis").innerHTML = '<p class="dica">Nenhum responsável cadastrado. Toque em + Adicionar responsável.</p>';
+  atualizarResponsaveis();
+}
+
+// mantém pelo menos 3 espaços (salvos + em branco) e atualiza o aviso e os documentos
+function atualizarResponsaveis() {
+  const lista = $("lista-responsaveis");
+  while (lista.querySelectorAll(".admin-cartao").length < MIN_RESPONSAVEIS) lista.append(cartao("responsaveis", { aluno_id: fichaAtual.id }));
+  lista.querySelectorAll(".admin-cartao.nova").forEach((f, i) => (f.querySelector("[data-acao=apagar]").hidden = i + respSalvos() < MIN_RESPONSAVEIS));
+  const n = respSalvos();
+  $("contagem-responsaveis").textContent = `${n} de no mínimo ${MIN_RESPONSAVEIS} cadastrados`;
+  $("contagem-responsaveis").classList.toggle("ok", n >= MIN_RESPONSAVEIS);
+  atualizarCabecalhoFicha(fichaAtual);
 }
 $("novo-responsavel").addEventListener("click", () => {
-  $("lista-responsaveis").querySelector(":scope > p.dica")?.remove();
   const form = cartao("responsaveis", { aluno_id: fichaAtual.id });
-  $("lista-responsaveis").prepend(form);
+  $("lista-responsaveis").append(form);
   form.elements.nome.focus();
 });
 document.querySelectorAll("[data-doc]").forEach((a) =>
