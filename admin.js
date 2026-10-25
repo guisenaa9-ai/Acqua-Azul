@@ -464,13 +464,33 @@ function abrirAba(aba) {
   document.querySelectorAll("[data-tela]").forEach((s) => (s.hidden = s.dataset.tela !== aba));
   document.querySelectorAll("[data-aba]").forEach((b) => b.setAttribute("aria-current", b.dataset.aba === aba ? "page" : "false"));
   history.replaceState(null, "", `#${aba}`);
+  if (!telaLarga.matches) alternarMenu(false); // no celular o menu fecha ao escolher
   CARREGAR[aba]();
 }
 document.querySelectorAll("[data-aba]").forEach((b) => b.addEventListener("click", () => abrirAba(b.dataset.aba)));
 
+// Menu lateral: no computador fica aberto e os três pontinhos recolhem; no celular abre por cima da tela
+const telaLarga = matchMedia("(min-width: 901px)");
+function alternarMenu(abrir) {
+  const classe = telaLarga.matches ? "menu-recolhido" : "menu-aberto";
+  const aberto = telaLarga.matches ? !document.body.classList.contains(classe) : document.body.classList.contains(classe);
+  const quer = abrir ?? !aberto;
+  document.body.classList.toggle(classe, telaLarga.matches ? !quer : quer);
+  $("abrir-menu").setAttribute("aria-expanded", String(quer));
+  $("abrir-menu").setAttribute("aria-label", quer ? "Fechar menu" : "Abrir menu");
+}
+$("abrir-menu").addEventListener("click", () => alternarMenu());
+$("fundo-menu").addEventListener("click", () => alternarMenu(false));
+document.addEventListener("keydown", (e) => e.key === "Escape" && document.body.classList.contains("menu-aberto") && alternarMenu(false));
+telaLarga.addEventListener("change", () => {
+  document.body.classList.remove("menu-aberto", "menu-recolhido");
+  $("abrir-menu").setAttribute("aria-expanded", String(telaLarga.matches));
+});
+
 function mostrarLogin() {
   $("tela-login").hidden = false;
-  $("abas").hidden = $("sair").hidden = true;
+  $("abas").hidden = $("sair").hidden = $("abrir-menu").hidden = true;
+  document.body.classList.remove("menu-aberto");
   document.querySelectorAll("[data-tela]").forEach((s) => (s.hidden = true));
 }
 
@@ -484,9 +504,11 @@ async function entrar() {
   }
   papel = p;
   document.querySelectorAll("[data-aba]").forEach((b) => (b.hidden = !podeAbrir(b.dataset.aba)));
+  document.querySelectorAll(".menu .grupo").forEach((g) => (g.hidden = ![...g.querySelectorAll("[data-aba]")].some((b) => !b.hidden)));
   document.querySelector('[data-novo="turmas"]').hidden = papel !== "dono";
   $("tela-login").hidden = true;
-  $("abas").hidden = $("sair").hidden = false;
+  $("abas").hidden = $("sair").hidden = $("abrir-menu").hidden = false;
+  $("abrir-menu").setAttribute("aria-expanded", String(telaLarga.matches));
   abrirAba(location.hash.slice(1));
 }
 
