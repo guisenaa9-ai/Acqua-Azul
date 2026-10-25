@@ -40,7 +40,7 @@ async function montar() {
   if (!a.nome_mae || a.responsaveis.length < 3) return mostrarDica("A ficha do aluno está incompleta: precisa da filiação 1 e de pelo menos 3 responsáveis.");
 
   const e = Object.fromEntries(conteudo.data.map((x) => [x.chave, x.valor]));
-  const faltando = ["escola_razao", "escola_cnpj", "escola_endereco", "escola_responsavel"].filter((k) => !e[k] || e[k].startsWith("["));
+  const faltando = ["escola_razao", "escola_cnpj", "escola_endereco"].filter((k) => !e[k] || e[k].startsWith("["));
   if (faltando.length) {
     $("aviso-doc").textContent = "Os dados da escola ainda estão com [marcadores]. Preencha em Textos › Documentos no painel antes de entregar a declaração.";
     $("aviso-doc").hidden = false;
@@ -67,7 +67,7 @@ async function montar() {
   $("corpo").innerHTML = corpo;
   const hoje = new Date().toLocaleDateString("pt-BR", { timeZone: "America/Manaus", day: "numeric", month: "long", year: "numeric" });
   $("local-data").textContent = `Manaus, ${hoje}.`;
-  $("quem-assina").textContent = `${e.escola_responsavel || ""}\n${e.escola_razao || ""}`;
+  $("quem-assina").textContent = ["Proprietária", e.escola_razao, e.escola_cnpj && `CNPJ ${e.escola_cnpj}`].filter(Boolean).join("\n");
   $("folha").hidden = false;
   $("imprimir").hidden = false;
   mostrarDica("Você pode ajustar o texto clicando nele antes de imprimir.");

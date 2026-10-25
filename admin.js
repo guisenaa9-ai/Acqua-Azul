@@ -243,7 +243,6 @@ const TEXTOS = [
   { chave: "escola_razao", r: "Documentos · Razão social da escola", max: 150 },
   { chave: "escola_cnpj", r: "Documentos · CNPJ", max: 20, ph: "00.000.000/0000-00" },
   { chave: "escola_endereco", r: "Documentos · Endereço da escola", max: 200 },
-  { chave: "escola_responsavel", r: "Documentos · Quem assina (nome e cargo)", max: 120, ph: "ex: Maria Silva – Diretora" },
   { chave: "end_cidade_nova", r: "Endereço da unidade Cidade Nova", t: "textarea", max: 200 },
   { chave: "end_campos_eliseos", r: "Endereço da unidade Campos Elíseos", t: "textarea", max: 200 }
 ];
