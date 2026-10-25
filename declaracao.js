@@ -8,7 +8,7 @@ const cpfBonito = (c) => (c && c.length === 11 ? `${c.slice(0, 3)}.${c.slice(3, 
 const TIPOS = {
   matricula: {
     titulo: "DECLARAÇÃO DE MATRÍCULA",
-    texto: (d) => `Declaramos, para os devidos fins, que <b>${d.aluno}</b>${d.nasc}${d.filiacao}, está regularmente matriculado(a) na ${d.escola}${d.turma}, desde ${d.inicio}.`
+    texto: (d) => `Declaramos, para os devidos fins, que <b>${d.aluno}</b>${d.nasc}${d.filiacao}, está regularmente ${d.g("matriculado", "matriculada", "matriculado(a)")} na ${d.escola}${d.turma}, desde ${d.inicio}.`
   },
   frequencia: {
     titulo: "DECLARAÇÃO DE FREQUÊNCIA",
@@ -50,8 +50,9 @@ async function montar() {
   const t = a.turmas;
   const d = {
     aluno: esc(a.nome),
-    nasc: (a.nascimento ? `, nascido(a) em ${dataBr(a.nascimento)}` : "") + (a.cpf ? `, CPF ${esc(cpfBonito(a.cpf))}` : ""),
-    filiacao: ((pais) => (pais.length ? `, filho(a) de ${pais.map(esc).join(" e ")}` : ""))([a.nome_mae, a.nome_pai].filter((n) => n && !/^n[ãa]o declarado$/i.test(n.trim()))),
+    g: (m, f, n) => (a.sexo === "M" ? m : a.sexo === "F" ? f : n),
+    nasc: (a.nascimento ? `, ${a.sexo === "M" ? "nascido" : a.sexo === "F" ? "nascida" : "nascido(a)"} em ${dataBr(a.nascimento)}` : "") + (a.cpf ? `, CPF ${esc(cpfBonito(a.cpf))}` : ""),
+    filiacao: ((pais) => (pais.length ? `, ${a.sexo === "M" ? "filho" : a.sexo === "F" ? "filha" : "filho(a)"} de ${pais.map(esc).join(" e ")}` : ""))([a.nome_mae, a.nome_pai].filter((n) => n && !/^n[ãa]o declarado$/i.test(n.trim()))),
     escola: `${esc(e.escola_razao)} (Acqua Azul Natação), inscrita no CNPJ ${esc(e.escola_cnpj)}`,
     turma: t ? `, na turma ${esc(t.nome)}, com aulas às ${esc(t.dias)}, ${esc(t.horario)}, na unidade ${esc(t.unidade)}` : "",
     inicio: dataBr(a.inicio)
