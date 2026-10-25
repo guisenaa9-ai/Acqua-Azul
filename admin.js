@@ -138,6 +138,14 @@ const TABELAS = {
   },
   alunos: {
     nome: (x) => `a ficha de ${x.nome}`,
+    textoSalvar: "Salvar ficha",
+    secoes: [
+      ["Dados do aluno", ["nome", "nascimento"]],
+      ["Filiação", ["nome_mae", "nome_pai"]],
+      ["Matrícula e plano", ["turma_id", "plano", "inicio", "status"], true],
+      ["Endereço e contato de emergência", ["endereco", "emergencia"], true],
+      ["Observações", ["observacoes"], true]
+    ],
     aoCriar: (novo) => abrirFicha(novo),
     validar: (x) => {
       const t = turmasCache.find((t) => t.id === x.turma_id);
@@ -149,20 +157,20 @@ const TABELAS = {
     },
     aoApagar: () => voltarParaAlunos(),
     campos: [
-      { n: "nome", r: "Nome do aluno", max: 100, req: true },
+      { n: "nome", r: "Nome do aluno", max: 100, req: true, dupla: true },
       { n: "nascimento", r: "Data de nascimento", t: "date", req: true },
-      { n: "nome_mae", r: "Nome da mãe", max: 100, req: true, ajuda: "Se não houver, escreva \"Não declarado\"." },
-      { n: "nome_pai", r: "Nome do pai", max: 100, req: true, ajuda: "Se não houver, escreva \"Não declarado\"." },
-      { n: "turma_id", r: "Turma", t: "select", num: true, op: () => [["", "Sem turma"], ...turmasCache.map((t) => [String(t.id), rotuloTurma(t)])] },
+      { n: "nome_mae", r: "Nome da mãe", max: 100, req: true, dupla: true, ajuda: "Se não houver, escreva \"Não declarado\"." },
+      { n: "nome_pai", r: "Nome do pai", max: 100, req: true, dupla: true, ajuda: "Se não houver, escreva \"Não declarado\"." },
+      { n: "turma_id", r: "Turma", t: "select", num: true, largo: true, op: () => [["", "Sem turma"], ...turmasCache.map((t) => [String(t.id), rotuloTurma(t)])] },
       { n: "status", r: "Situação da matrícula", t: "select", op: STATUS_ALUNO, soEdicao: true },
       { n: "inicio", r: "Início da matrícula", t: "date", req: true },
-      { n: "plano", r: "Plano", t: "select", op: (atual) => {
+      { n: "plano", r: "Plano", t: "select", dupla: true, op: (atual) => {
         if (!planosCache.length) return [["", "Nenhum plano cadastrado"]];
         const ops = [["", "Escolha o plano"], ...planosCache.map((p) => [p.nome, `${p.nome} – ${p.preco}`])];
         if (atual && !planosCache.some((p) => p.nome === atual)) ops.push([atual, `${atual} (plano que não está mais ativo)`]);
         return ops;
       } },
-      { n: "emergencia", r: "Contato de emergência", max: 150, ph: "Nome e telefone" },
+      { n: "emergencia", r: "Contato de emergência", max: 150, ph: "Nome e telefone", dupla: true },
       { n: "endereco", r: "Endereço", t: "textarea", max: 300, largo: true },
       { n: "observacoes", r: "Observações (ex.: alergias ou cuidados especiais, só se necessário)", t: "textarea", max: 1000, largo: true }
     ]
@@ -216,6 +224,7 @@ const TEXTOS = [
 function criarCampo(def, valor) {
   const label = document.createElement("label");
   if (def.largo || def.t === "textarea") label.className = "largo";
+  else if (def.dupla) label.className = "dupla";
   let input;
   if (def.t === "select") {
     input = document.createElement("select");
@@ -302,14 +311,35 @@ function cartao(tabela, item) {
       <button type="button" class="btn-redondo" data-acao="mais" aria-label="Uma vaga a mais">+</button>
     </div>`);
   }
-  const campos = document.createElement("div");
-  campos.className = "campos";
-  cfg.campos.forEach((c) => (nova && c.soEdicao) || campos.append(criarCampo(c, item[c.n])));
   const botoes = document.createElement("div");
   botoes.className = "botoes";
-  botoes.append(botao("Salvar", "btn-mar", "salvar"), botao("Apagar", "btn-apagar", "apagar"), status);
+  botoes.append(botao(cfg.textoSalvar || "Salvar", "btn-mar", "salvar"), botao("Apagar", "btn-apagar", "apagar"), status);
   if (tabela === "turmas" && papel !== "dono") botoes.querySelector('[data-acao="apagar"]').remove(); // recepção não apaga turma
-  form.append(campos, botoes);
+  const usaCampo = (c) => c && !(nova && c.soEdicao);
+  if (cfg.secoes) {
+    // ficha em blocos; os blocos "depois" ficam fora do <form> (para caber outro bloco no meio) e se ligam a ele pelo atributo form
+    form.className = "ficha" + (nova ? " nova" : "");
+    form.id = `form-${tabela}`;
+    form._depois = document.createElement("div");
+    form._depois.className = "ficha-depois";
+    for (const [titulo, nomes, depois] of cfg.secoes) {
+      const bloco = document.createElement("fieldset");
+      bloco.className = "secao";
+      bloco.append(Object.assign(document.createElement("legend"), { textContent: titulo }));
+      const grade = document.createElement("div");
+      grade.className = "campos";
+      nomes.map((n) => cfg.campos.find((c) => c.n === n)).filter(usaCampo).forEach((c) => grade.append(criarCampo(c, item[c.n])));
+      bloco.append(grade);
+      (depois ? form._depois : form).append(bloco);
+    }
+    form._depois.append(botoes);
+    form._depois.querySelectorAll("input, select, textarea, button").forEach((el) => el.setAttribute("form", form.id));
+  } else {
+    const campos = document.createElement("div");
+    campos.className = "campos";
+    cfg.campos.filter(usaCampo).forEach((c) => campos.append(criarCampo(c, item[c.n])));
+    form.append(campos, botoes);
+  }
 
   const pintar = () => {
     const ativo = form.elements.ativa || form.elements.ativo;
@@ -342,7 +372,7 @@ function cartao(tabela, item) {
     if (nova) cfg.recarregar ? cfg.recarregar() : carregarLista(tabela);
   });
 
-  form.addEventListener("click", async (e) => {
+  const aoClicar = async (e) => {
     const acao = e.target.dataset?.acao;
     if (acao === "menos" || acao === "mais") {
       const v = Number(form.elements.vagas.value) + (acao === "mais" ? 1 : -1);
@@ -359,9 +389,12 @@ function cartao(tabela, item) {
       if (error) return avisar(status, "Não apagou. Tente de novo.");
       if (cfg.foto) await sb.storage.from("fotos").remove([item.caminho]);
       form.remove();
+      form._depois?.remove();
       cfg.aoApagar?.(item);
     }
-  });
+  };
+  form.addEventListener("click", aoClicar);
+  form._depois?.addEventListener("click", aoClicar);
   return form;
 }
 
@@ -606,7 +639,9 @@ function abrirFicha(aluno) {
   $("lista-responsaveis").replaceChildren();
   $("alunos-lista").hidden = true;
   $("aluno-ficha").hidden = false;
-  $("ficha-form").replaceChildren(cartao("alunos", aluno));
+  const form = cartao("alunos", aluno);
+  $("ficha-form").replaceChildren(form);
+  $("ficha-depois").replaceChildren(form._depois);
   turmasPelaIdade($("ficha-form").querySelector("form"), aluno.turma_id);
   atualizarCabecalhoFicha(aluno);
   $("ficha-responsaveis").hidden = !aluno.id;

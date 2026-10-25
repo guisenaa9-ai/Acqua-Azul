@@ -105,3 +105,16 @@
 .pilula.incompleta { background: #fff4d6; color: #7a5300; }
 .contagem { display: inline-block; margin-left: 4px; font-weight: 800; color: var(--alerta); }
 .contagem.ok { color: #1d6b34; }
+
+/* Ficha do aluno em blocos numerados */
+.ficha-blocos { counter-reset: secao; display: flex; flex-direction: column; gap: 20px; }
+.ficha, .ficha-depois { display: flex; flex-direction: column; gap: 20px; }
+.secao { margin: 0; min-width: 0; border: 2px solid var(--espuma); border-radius: var(--raio); padding: 22px 24px 24px; background: #fff; }
+.secao legend, #ficha-responsaveis h2 { font: 800 20px "Baloo 2", sans-serif; color: var(--abismo); padding: 0 8px; margin-left: -8px; }
+.secao legend::before, #ficha-responsaveis h2::before { counter-increment: secao; content: counter(secao); display: inline-grid; place-items: center; width: 28px; height: 28px; margin-right: 10px; border-radius: 50%; background: var(--mar); color: #fff; font-size: 15px; vertical-align: 2px; }
+#ficha-responsaveis { margin-top: 0; }
+#ficha-responsaveis h2 { font-size: 20px; margin: 0; padding: 0; }
+#ficha-responsaveis .admin-cartao { border-style: dashed; }
+.ficha-depois > .botoes { padding: 4px 0 0; }
+.campos .dupla { grid-column: span 2; }
+@media (max-width: 520px) { .campos .dupla { grid-column: 1 / -1; } }
