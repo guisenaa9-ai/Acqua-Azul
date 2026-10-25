@@ -20,6 +20,7 @@ Site estático (HTML, CSS e JS puros, sem build), hospedado na Vercel. As turmas
 - A chave em `config.js` é a publishable: pública por desenho. Quem protege os dados são as regras RLS do banco.
 - Tabelas: `turmas`, `conteudo` (textos soltos), `marcos` (história), `avisos`, `fotos` + bucket público `fotos`, `planos`, `depoimentos`, `pedidos`.
 - Papéis em `admins.papel`: `dono` mexe em tudo; `recepcao` vê o resumo, atende pedidos e edita turmas (sem criar nem apagar). Funções `is_admin()`, `is_dono()` e `meu_papel()`.
+- Turmas têm faixa etária em meses (`idade_min_meses` ≤ idade < `idade_max_meses`); o gatilho `alunos_turma_idade` recusa aluno fora da faixa quando a turma ou o nascimento mudam.
 - Visitantes só leem o que está ativo/vigente. Criar, editar e apagar exige login **e** estar na tabela `admins`.
 - Fotos são reduzidas no navegador (máx. 1600 px, JPEG) antes do upload; o bucket aceita só JPEG/WebP até 3 MB.
 - Pedidos de aula experimental: visitante não acessa a tabela `pedidos`; o envio passa pela função `pedido` (Turnstile + campo-isca + até 3 pedidos/hora por IP e 60/hora no total). Só admin lê.

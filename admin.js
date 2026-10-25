@@ -20,6 +20,30 @@ function cpfValido(c) {
   return dv(9) === Number(c[9]) && dv(10) === Number(c[10]);
 }
 const STATUS_ALUNO = [["ativa", "Matrícula ativa"], ["trancada", "Trancada"], ["cancelada", "Cancelada"]];
+// Faixa etária em meses: cabe se idade >= mínimo e < máximo ("até completar"); máximo vazio = sem limite
+const MESES_FAIXA = [0, 3, 6, 9, 12, 18, 24, 30, 36, 48, 60, 72, 84, 96, 108, 120, 132, 144, 156, 168, 180, 192, 204, 216];
+const textoMeses = (m) => {
+  if (m < 12) return `${m} ${m === 1 ? "mês" : "meses"}`;
+  const a = Math.floor(m / 12), r = m % 12, anos = `${a} ano${a > 1 ? "s" : ""}`;
+  return r ? `${anos} e ${r} ${r === 1 ? "mês" : "meses"}` : anos;
+};
+function textoIdade(min, max) {
+  if (max == null) return `A partir de ${textoMeses(min)}`;
+  if (min >= 12 && min % 12 === 0 && max % 12 === 0) {
+    const a = min / 12, b = max / 12 - 1;
+    return a === b ? `${a} ano${a > 1 ? "s" : ""}` : `${a} a ${b} anos`;
+  }
+  return `${textoMeses(min)} a ${textoMeses(max)}`;
+}
+function idadeEmMeses(nasc) {
+  if (!nasc) return null;
+  const [a, m, d] = nasc.split("-").map(Number);
+  const [ha, hm, hd] = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Manaus" }).split("-").map(Number);
+  const meses = (ha - a) * 12 + (hm - m) - (hd < d ? 1 : 0);
+  return meses < 0 ? null : meses;
+}
+const cabeNaTurma = (t, meses) => meses != null && meses >= t.idade_min_meses && (t.idade_max_meses == null || meses < t.idade_max_meses);
+const MSG_FAIXA = "A idade do aluno não corresponde à faixa etária da turma.";
 let turmasCache = [];
 let planosCache = [];
 const MIN_RESPONSAVEIS = 3;
@@ -48,14 +72,16 @@ const TABELAS = {
   },
   turmas: {
     ordem: [["ordem"], ["id"]],
-    novo: { unidade: "Cidade Nova", vagas: 8, total: 8, ordem: 0, ativa: true },
+    novo: { unidade: "Cidade Nova", vagas: 8, total: 8, ordem: 0, ativa: true, idade_min_meses: 24, idade_max_meses: 60 },
     vagas: true,
     nome: (x) => x.nome,
-    validar: (x) => (x.vagas > x.total ? "Vagas livres não podem passar do total." : ""),
+    validar: (x) => (x.vagas > x.total ? "Vagas livres não podem passar do total." : x.idade_max_meses != null && x.idade_max_meses <= x.idade_min_meses ? "A idade final precisa ser maior que a inicial." : ""),
+    antesDeSalvar: (x) => (x.idade = textoIdade(x.idade_min_meses, x.idade_max_meses)),
     campos: [
       { n: "nome", r: "Nome da turma", max: 60, req: true },
       { n: "unidade", r: "Unidade", t: "select", op: ["Cidade Nova", "Campos Elíseos"] },
-      { n: "idade", r: "Idade", max: 60, req: true, ph: "ex: 2 a 4 anos" },
+      { n: "idade_min_meses", r: "Idade: a partir de", t: "select", inteiro: true, op: MESES_FAIXA.map((m) => [String(m), textoMeses(m)]) },
+      { n: "idade_max_meses", r: "Idade: até completar", t: "select", num: true, op: [...MESES_FAIXA.slice(1).map((m) => [String(m), textoMeses(m)]), ["", "Sem limite"]], ajuda: "Ex.: a partir de 2 anos, até completar 5 anos = turma de 2 a 4 anos." },
       { n: "dias", r: "Dias", max: 60, req: true, ph: "ex: Seg e Qua" },
       { n: "horario", r: "Horário", max: 20, req: true, ph: "ex: 16h" },
       { n: "vagas", r: "Vagas livres", t: "number", min: 0, req: true },
@@ -113,6 +139,10 @@ const TABELAS = {
   alunos: {
     nome: (x) => `a ficha de ${x.nome}`,
     aoCriar: (novo) => abrirFicha(novo),
+    validar: (x) => {
+      const t = turmasCache.find((t) => t.id === x.turma_id);
+      return t && !cabeNaTurma(t, idadeEmMeses(x.nascimento)) ? MSG_FAIXA : "";
+    },
     aoSalvar: (d) => {
       Object.assign(fichaAtual, d);
       atualizarCabecalhoFicha(d);
@@ -120,7 +150,7 @@ const TABELAS = {
     aoApagar: () => voltarParaAlunos(),
     campos: [
       { n: "nome", r: "Nome do aluno", max: 100, req: true },
-      { n: "nascimento", r: "Data de nascimento", t: "date" },
+      { n: "nascimento", r: "Data de nascimento", t: "date", req: true },
       { n: "nome_mae", r: "Nome da mãe", max: 100, req: true, ajuda: "Se não houver, escreva \"Não declarado\"." },
       { n: "nome_pai", r: "Nome do pai", max: 100, req: true, ajuda: "Se não houver, escreva \"Não declarado\"." },
       { n: "turma_id", r: "Turma", t: "select", num: true, op: () => [["", "Sem turma"], ...turmasCache.map((t) => [String(t.id), rotuloTurma(t)])] },
@@ -227,6 +257,7 @@ function lerCampos(form, campos) {
     if (c.t === "checkbox") dados[c.n] = el.checked;
     else if (c.t === "number") dados[c.n] = Number(el.value) || 0;
     else if (c.t === "date") dados[c.n] = el.value || null;
+    else if (c.inteiro) dados[c.n] = Number(el.value) || 0;
     else if (c.num) dados[c.n] = Number(el.value) || null;
     else if (c.digitos) dados[c.n] = el.value.replace(/\D/g, "");
     else dados[c.n] = el.value.trim();
@@ -298,8 +329,9 @@ function cartao(tabela, item) {
     const invalido = cfg.validar?.(dados);
     if (invalido) return avisar(status, invalido);
     if (nova) cfg.fixos?.forEach((k) => (dados[k] = item[k]));
+    cfg.antesDeSalvar?.(dados);
     const { data: salvo, error } = nova ? await sb.from(tabela).insert(dados).select().single() : await sb.from(tabela).update(dados).eq("id", item.id);
-    if (error) return avisar(status, "Não salvou. Confira os campos e tente de novo.");
+    if (error) return avisar(status, /faixa etária|data de nascimento/.test(error.message) ? error.message : "Não salvou. Confira os campos e tente de novo.");
     avisar(status, "Salvo!");
     if (nova && cfg.aoCriar) return cfg.aoCriar(salvo, form);
     cfg.aoSalvar?.(dados);
@@ -482,7 +514,7 @@ async function carregarAlunos() {
   const erro = tela("alunos").querySelector(".erro");
   erro.textContent = "";
   const [turmas, alunos, planos] = await Promise.all([
-    sb.from("turmas").select("id,nome,unidade,dias,horario").order("ordem").order("id"),
+    sb.from("turmas").select("id,nome,unidade,dias,horario,idade,idade_min_meses,idade_max_meses").order("ordem").order("id"),
     sb.from("alunos").select("id,nome,nascimento,status,turma_id,nome_pai,nome_mae,responsaveis(count)").order("nome"),
     sb.from("planos").select("nome,preco").eq("ativo", true).order("ordem").order("id")
   ]);
@@ -493,6 +525,10 @@ async function carregarAlunos() {
   listarAlunos();
 }
 
+const foraDaFaixa = (a) => {
+  const t = turmasCache.find((t) => t.id === a.turma_id);
+  return t && !cabeNaTurma(t, idadeEmMeses(a.nascimento));
+};
 const fichaIncompleta = (a) => !a.nome_pai || !a.nome_mae || (a.responsaveis?.[0]?.count ?? 0) < MIN_RESPONSAVEIS;
 
 function listarAlunos() {
@@ -505,7 +541,7 @@ function listarAlunos() {
     ? vis.map((a) => `<button type="button" class="linha-aluno" data-id="${a.id}">
         <span class="la-nome">${esc(a.nome)}<small>${esc(idade(a.nascimento))}</small></span>
         <span class="la-turma">${turma(a.turma_id) ? esc(rotuloTurma(turma(a.turma_id))) : "Sem turma"}</span>
-        <span class="pilulas">${fichaIncompleta(a) ? '<span class="pilula incompleta">Ficha incompleta</span>' : ""}<span class="pilula ${a.status}">${nomeStatus[a.status]}</span></span>
+        <span class="pilulas">${fichaIncompleta(a) ? '<span class="pilula incompleta">Ficha incompleta</span>' : ""}${foraDaFaixa(a) ? '<span class="pilula cancelada">Idade fora da turma</span>' : ""}<span class="pilula ${a.status}">${nomeStatus[a.status]}</span></span>
       </button>`).join("")
     : `<p class="dica">${alunosCache.length ? "Nenhum aluno encontrado com esse filtro." : "Nenhum aluno cadastrado ainda. Toque em + Novo aluno."}</p>`;
 }
@@ -542,12 +578,36 @@ function atualizarCabecalhoFicha(d) {
   $("docs-aviso").hidden = !salvo || liberado;
 }
 
+// Mostra só as turmas da faixa etária do aluno; a turma atual fica visível mesmo se ele já passou da idade
+function turmasPelaIdade(form, turmaAtual) {
+  const nasc = form.elements.nascimento, sel = form.elements.turma_id;
+  const montar = () => {
+    const meses = idadeEmMeses(nasc.value), escolhida = sel.value || String(turmaAtual ?? "");
+    sel.replaceChildren();
+    if (meses == null) {
+      sel.add(new Option("Informe a data de nascimento primeiro", ""));
+      sel.disabled = true;
+      return;
+    }
+    sel.disabled = false;
+    const cabem = turmasCache.filter((t) => cabeNaTurma(t, meses));
+    sel.add(new Option(cabem.length ? `Escolha a turma (${textoMeses(meses)})` : `Nenhuma turma para ${textoMeses(meses)}`, ""));
+    cabem.forEach((t) => sel.add(new Option(`${rotuloTurma(t)} · ${t.idade}`, t.id)));
+    const atual = turmasCache.find((t) => String(t.id) === escolhida);
+    if (atual && !cabem.includes(atual) && atual.id === turmaAtual && nasc.value === (fichaAtual?.nascimento ?? "")) sel.add(new Option(`${rotuloTurma(atual)} (fora da faixa etária)`, atual.id));
+    sel.value = [...sel.options].some((o) => o.value === escolhida) ? escolhida : "";
+  };
+  nasc.addEventListener("input", montar);
+  montar();
+}
+
 function abrirFicha(aluno) {
   fichaAtual = aluno;
   $("lista-responsaveis").replaceChildren();
   $("alunos-lista").hidden = true;
   $("aluno-ficha").hidden = false;
   $("ficha-form").replaceChildren(cartao("alunos", aluno));
+  turmasPelaIdade($("ficha-form").querySelector("form"), aluno.turma_id);
   atualizarCabecalhoFicha(aluno);
   $("ficha-responsaveis").hidden = !aluno.id;
   if (aluno.id) carregarResponsaveis(aluno.id);
