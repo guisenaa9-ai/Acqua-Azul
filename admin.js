@@ -141,18 +141,21 @@ const TABELAS = {
     textoSalvar: "Salvar ficha",
     secoes: [
       ["Dados do aluno", ["nome", "nascimento", "sexo", "naturalidade", "cpf", "rg", "certidao"]],
-      ["Filiação", ["nome_mae", "mae_cpf", "mae_rg", "mae_telefone", "nome_pai", "pai_cpf", "pai_rg", "pai_telefone"]],
-      ["Contato de emergência", ["emergencia_nome", "emergencia_ddd", "emergencia_numero"]],
+      ["Filiação", ["nome_mae", "mae_parentesco", "mae_cpf", "mae_telefone", "nome_pai", "pai_parentesco", "pai_cpf", "pai_telefone"]],
+      ["Outros contatos de emergência", ["emergencia_nome", "emergencia_parentesco", "emergencia_ddd", "emergencia_numero", "emergencia2_nome", "emergencia2_parentesco", "emergencia2_ddd", "emergencia2_numero"]],
       ["Matrícula e plano", ["turma_id", "plano", "inicio", "status"], true],
       ["Endereço", ["endereco"], true],
       ["Observações", ["observacoes"], true]
     ],
     aoCriar: (novo) => abrirFicha(novo),
     validar: (x) => {
-      for (const [campo, quem] of [["cpf", "do aluno"], ["mae_cpf", "da mãe"], ["pai_cpf", "do pai"]]) if (x[campo] && !cpfValido(x[campo])) return `CPF ${quem} inválido. Confira os números.`;
-      for (const [campo, quem] of [["mae_telefone", "da mãe"], ["pai_telefone", "do pai"]]) if (x[campo] && !/^\d{10,13}$/.test(x[campo])) return `Confira o telefone ${quem} com DDD.`;
-      if (!/^\d{2}$/.test(x.emergencia_ddd)) return "Contato de emergência: o DDD tem 2 números.";
-      if (!/^\d{8,9}$/.test(x.emergencia_numero)) return "Contato de emergência: o número tem 8 ou 9 dígitos, sem o DDD.";
+      for (const [campo, quem] of [["cpf", "do aluno"], ["mae_cpf", "da filiação 1"], ["pai_cpf", "da filiação 2"]]) if (x[campo] && !cpfValido(x[campo])) return `CPF ${quem} inválido. Confira os números.`;
+      for (const [campo, quem] of [["mae_telefone", "da filiação 1"], ["pai_telefone", "da filiação 2"]]) if (x[campo] && !/^\d{10,13}$/.test(x[campo])) return `Confira o contato ${quem} com DDD.`;
+      for (const [p, qual] of [["emergencia", "1"], ["emergencia2", "2"]]) {
+        if (!x[`${p}_ddd`] && !x[`${p}_numero`]) continue;
+        if (!/^\d{2}$/.test(x[`${p}_ddd`])) return `Contato de emergência ${qual}: o DDD tem 2 números.`;
+        if (!/^\d{8,9}$/.test(x[`${p}_numero`])) return `Contato de emergência ${qual}: o número tem 8 ou 9 dígitos, sem o DDD.`;
+      }
       const t = turmasCache.find((t) => t.id === x.turma_id);
       return t && !cabeNaTurma(t, idadeEmMeses(x.nascimento)) ? MSG_FAIXA : "";
     },
@@ -165,21 +168,26 @@ const TABELAS = {
       { n: "nome", r: "Nome do aluno", max: 100, req: true, col: 4 },
       { n: "nascimento", r: "Data de nascimento", t: "date", req: true, col: 2 },
       { n: "sexo", r: "Sexo", t: "select", col: 2, op: [["", "Selecione"], ["F", "Feminino"], ["M", "Masculino"]] },
-      { n: "naturalidade", r: "Naturalidade", max: 80, ph: "ex: Manaus/AM", col: 2 },
+      { n: "naturalidade", r: "Naturalidade", max: 80, ph: "ex: Manaus/AM", col: 4 },
       { n: "cpf", r: "CPF", digitos: true, max: 14, ph: "Se houver", mostrar: cpfBonito, col: 2 },
       { n: "rg", r: "RG / órgão emissor", max: 30, ph: "Se houver", col: 2 },
-      { n: "certidao", r: "Certidão de nascimento (nº da matrícula)", max: 60, ph: "Se houver", col: 4 },
-      { n: "nome_mae", r: "Nome da mãe", max: 100, req: true, col: 3, ajuda: "Se não houver, escreva \"Não declarado\"." },
-      { n: "mae_cpf", r: "CPF da mãe", digitos: true, max: 14, ph: "000.000.000-00", mostrar: cpfBonito, col: 1 },
-      { n: "mae_rg", r: "RG da mãe", max: 30, col: 1 },
-      { n: "mae_telefone", r: "Telefone da mãe", t: "tel", digitos: true, max: 20, ph: "(92) 99999-9999", mostrar: telefoneCampo, col: 1 },
-      { n: "nome_pai", r: "Nome do pai", max: 100, req: true, col: 3, ajuda: "Se não houver, escreva \"Não declarado\"." },
-      { n: "pai_cpf", r: "CPF do pai", digitos: true, max: 14, ph: "000.000.000-00", mostrar: cpfBonito, col: 1 },
-      { n: "pai_rg", r: "RG do pai", max: 30, col: 1 },
-      { n: "pai_telefone", r: "Telefone do pai", t: "tel", digitos: true, max: 20, ph: "(92) 99999-9999", mostrar: telefoneCampo, col: 1 },
-      { n: "emergencia_nome", r: "Nome do contato", max: 100, req: true, col: 3, ph: "ex: Maria (avó)" },
-      { n: "emergencia_ddd", r: "DDD", digitos: true, max: 2, req: true, ph: "92", col: 1 },
-      { n: "emergencia_numero", r: "Número", t: "tel", digitos: true, max: 10, req: true, ph: "99999-9999", col: 2, mostrar: (n) => `${n.slice(0, -4)}-${n.slice(-4)}` },
+      { n: "certidao", r: "Certidão de nascimento", max: 60, ph: "Nº da matrícula, se houver", col: 2 },
+      { n: "nome_mae", r: "Filiação 1 · nome", max: 100, req: true, col: 2 },
+      { n: "mae_parentesco", r: "Parentesco", max: 40, ph: "ex: mãe, avó, tio", col: 1 },
+      { n: "mae_cpf", r: "CPF", digitos: true, req: true, max: 14, ph: "000.000.000-00", mostrar: cpfBonito, col: 1 },
+      { n: "mae_telefone", r: "Contato (com DDD)", t: "tel", digitos: true, req: true, max: 20, ph: "(92) 99999-9999", mostrar: telefoneCampo, col: 2 },
+      { n: "nome_pai", r: "Filiação 2 · nome", max: 100, col: 2 },
+      { n: "pai_parentesco", r: "Parentesco", max: 40, ph: "ex: pai, avó, tio", col: 1 },
+      { n: "pai_cpf", r: "CPF", digitos: true, max: 14, ph: "000.000.000-00", mostrar: cpfBonito, col: 1 },
+      { n: "pai_telefone", r: "Contato (com DDD)", t: "tel", digitos: true, max: 20, ph: "(92) 99999-9999", mostrar: telefoneCampo, col: 2 },
+      { n: "emergencia_nome", r: "Contato 1 · nome", max: 100, col: 2, ph: "ex: Maria" },
+      { n: "emergencia_parentesco", r: "Parentesco", max: 40, ph: "ex: avó", col: 1 },
+      { n: "emergencia_ddd", r: "DDD", digitos: true, max: 2, ph: "92", col: 1 },
+      { n: "emergencia_numero", r: "Número", t: "tel", digitos: true, max: 10, ph: "99999-9999", col: 2, mostrar: (n) => `${n.slice(0, -4)}-${n.slice(-4)}` },
+      { n: "emergencia2_nome", r: "Contato 2 · nome", max: 100, col: 2, ph: "ex: João" },
+      { n: "emergencia2_parentesco", r: "Parentesco", max: 40, ph: "ex: tio", col: 1 },
+      { n: "emergencia2_ddd", r: "DDD", digitos: true, max: 2, ph: "92", col: 1 },
+      { n: "emergencia2_numero", r: "Número", t: "tel", digitos: true, max: 10, ph: "99999-9999", col: 2, mostrar: (n) => `${n.slice(0, -4)}-${n.slice(-4)}` },
       { n: "turma_id", r: "Turma", t: "select", num: true, col: 6, op: () => [["", "Sem turma"], ...turmasCache.map((t) => [String(t.id), rotuloTurma(t)])] },
       { n: "status", r: "Situação da matrícula", t: "select", op: STATUS_ALUNO, soEdicao: true, col: 2 },
       { n: "inicio", r: "Início da matrícula", t: "date", req: true, col: 2 },
@@ -235,7 +243,6 @@ const TEXTOS = [
   { chave: "escola_razao", r: "Documentos · Razão social da escola", max: 150 },
   { chave: "escola_cnpj", r: "Documentos · CNPJ", max: 20, ph: "00.000.000/0000-00" },
   { chave: "escola_endereco", r: "Documentos · Endereço da escola", max: 200 },
-  { chave: "escola_responsavel", r: "Documentos · Quem assina (nome e cargo)", max: 120, ph: "ex: Maria Silva – Diretora" },
   { chave: "end_cidade_nova", r: "Endereço da unidade Cidade Nova", t: "textarea", max: 200 },
   { chave: "end_campos_eliseos", r: "Endereço da unidade Campos Elíseos", t: "textarea", max: 200 }
 ];
@@ -268,7 +275,7 @@ function criarCampo(def, valor) {
     label.append(input, " " + def.r);
   } else {
     input.value = def.mostrar && valor ? def.mostrar(valor) : (valor ?? "");
-    label.append(Object.assign(document.createElement("span"), { className: "rotulo-campo", textContent: def.r, title: def.r }), input);
+    label.append(Object.assign(document.createElement("span"), { className: "rotulo-campo", textContent: def.r + (def.req && def.col ? " *" : ""), title: def.r }), input);
   }
   if (def.ajuda) {
     const s = document.createElement("small");
@@ -582,7 +589,7 @@ const foraDaFaixa = (a) => {
   const t = turmasCache.find((t) => t.id === a.turma_id);
   return t && !cabeNaTurma(t, idadeEmMeses(a.nascimento));
 };
-const fichaIncompleta = (a) => !a.nome_pai || !a.nome_mae || (a.responsaveis?.[0]?.count ?? 0) < MIN_RESPONSAVEIS;
+const fichaIncompleta = (a) => !a.nome_mae || (a.responsaveis?.[0]?.count ?? 0) < MIN_RESPONSAVEIS;
 
 function listarAlunos() {
   const busca = $("busca-alunos").value.trim().toLowerCase();
@@ -607,7 +614,7 @@ $("tabela-alunos").addEventListener("click", async (e) => {
   if (error) return (tela("alunos").querySelector(".erro").textContent = "Não foi possível abrir a ficha.");
   abrirFicha(data);
 });
-$("novo-aluno").addEventListener("click", () => abrirFicha({ status: "ativa", inicio: new Date().toLocaleDateString("sv-SE", { timeZone: "America/Manaus" }) }));
+$("novo-aluno").addEventListener("click", () => abrirFicha({ status: "ativa", mae_parentesco: "Mãe", pai_parentesco: "Pai", inicio: new Date().toLocaleDateString("sv-SE", { timeZone: "America/Manaus" }) }));
 $("voltar-alunos").addEventListener("click", carregarAlunos);
 
 function voltarParaAlunos() {
