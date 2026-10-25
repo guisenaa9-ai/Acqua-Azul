@@ -37,7 +37,7 @@ async function montar() {
   if (!aluno.data) return mostrarDica("Aluno não encontrado, ou sua conta não tem acesso.");
   const a = aluno.data;
   if (a.status !== "ativa") return mostrarDica("Esta matrícula não está ativa, então a declaração não pode ser emitida.");
-  if (!a.nome_mae || !a.nome_pai || a.responsaveis.length < 3) return mostrarDica("A ficha do aluno está incompleta: precisa das duas filiações e de pelo menos 3 responsáveis.");
+  if (!a.nome_mae || a.responsaveis.length < 3) return mostrarDica("A ficha do aluno está incompleta: precisa da filiação 1 e de pelo menos 3 responsáveis.");
 
   const e = Object.fromEntries(conteudo.data.map((x) => [x.chave, x.valor]));
   const faltando = ["escola_razao", "escola_cnpj", "escola_endereco", "escola_responsavel"].filter((k) => !e[k] || e[k].startsWith("["));
