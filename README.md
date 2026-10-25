@@ -24,7 +24,7 @@ Site estático (HTML, CSS e JS puros, sem build), hospedado na Vercel. As turmas
 - Fotos são reduzidas no navegador (máx. 1600 px, JPEG) antes do upload; o bucket aceita só JPEG/WebP até 3 MB.
 - Pedidos de aula experimental: visitante não acessa a tabela `pedidos`; o envio passa pela função `pedido` (Turnstile + campo-isca + até 3 pedidos/hora por IP e 60/hora no total). Só admin lê.
 - LGPD: consentimento obrigatório no formulário e job `apagar-pedidos-antigos` (pg_cron) que apaga pedidos com mais de 6 meses todo dia.
-- Turnstile: `turnstileSiteKey` em `config.js` e o segredo `TURNSTILE_SECRET` nas Edge Functions do Supabase. Sem eles valem as chaves de teste da Cloudflare, que aprovam qualquer envio.
+- Turnstile: `turnstileSiteKey` em `config.js` e o segredo `TURNSTILE_SECRET` nas Edge Functions do Supabase (widget "Acqua Azul" no Cloudflare; ao trocar de domínio, adicionar o novo hostname no widget).
 
 ## Dar acesso ao painel
 
