@@ -118,3 +118,4 @@
 .ficha-depois > .botoes { padding: 4px 0 0; }
 .campos .dupla { grid-column: span 2; }
 @media (max-width: 520px) { .campos .dupla { grid-column: 1 / -1; } }
+.idade-calc { font-weight: 800 !important; color: var(--mar) !important; }

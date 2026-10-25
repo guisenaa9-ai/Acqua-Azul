@@ -140,14 +140,17 @@ const TABELAS = {
     nome: (x) => `a ficha de ${x.nome}`,
     textoSalvar: "Salvar ficha",
     secoes: [
-      ["Dados do aluno", ["nome", "nascimento"]],
-      ["Filiação", ["nome_mae", "nome_pai"]],
+      ["Dados do aluno", ["nome", "nascimento", "cpf", "rg"]],
+      ["Dados da mãe", ["nome_mae", "mae_nascimento", "mae_cpf", "mae_rg", "mae_telefone"]],
+      ["Dados do pai", ["nome_pai", "pai_nascimento", "pai_cpf", "pai_rg", "pai_telefone"]],
       ["Matrícula e plano", ["turma_id", "plano", "inicio", "status"], true],
       ["Endereço e contato de emergência", ["endereco", "emergencia"], true],
       ["Observações", ["observacoes"], true]
     ],
     aoCriar: (novo) => abrirFicha(novo),
     validar: (x) => {
+      for (const [campo, quem] of [["cpf", "do aluno"], ["mae_cpf", "da mãe"], ["pai_cpf", "do pai"]]) if (x[campo] && !cpfValido(x[campo])) return `CPF ${quem} inválido. Confira os números.`;
+      for (const [campo, quem] of [["mae_telefone", "da mãe"], ["pai_telefone", "do pai"]]) if (x[campo] && !/^\d{10,13}$/.test(x[campo])) return `Confira o telefone ${quem} com DDD.`;
       const t = turmasCache.find((t) => t.id === x.turma_id);
       return t && !cabeNaTurma(t, idadeEmMeses(x.nascimento)) ? MSG_FAIXA : "";
     },
@@ -159,8 +162,18 @@ const TABELAS = {
     campos: [
       { n: "nome", r: "Nome do aluno", max: 100, req: true, dupla: true },
       { n: "nascimento", r: "Data de nascimento", t: "date", req: true },
+      { n: "cpf", r: "CPF (se houver)", digitos: true, max: 14, ph: "000.000.000-00", mostrar: cpfBonito },
+      { n: "rg", r: "RG e órgão emissor (se houver)", max: 30, ph: "ex: 1234567-8 SSP/AM" },
       { n: "nome_mae", r: "Nome da mãe", max: 100, req: true, dupla: true, ajuda: "Se não houver, escreva \"Não declarado\"." },
+      { n: "mae_nascimento", r: "Data de nascimento", t: "date" },
+      { n: "mae_cpf", r: "CPF", digitos: true, max: 14, ph: "000.000.000-00", mostrar: cpfBonito },
+      { n: "mae_rg", r: "RG e órgão emissor", max: 30, ph: "ex: 1234567-8 SSP/AM" },
+      { n: "mae_telefone", r: "Telefone", t: "tel", digitos: true, max: 20, ph: "(92) 99999-9999", mostrar: telefoneCampo },
       { n: "nome_pai", r: "Nome do pai", max: 100, req: true, dupla: true, ajuda: "Se não houver, escreva \"Não declarado\"." },
+      { n: "pai_nascimento", r: "Data de nascimento", t: "date" },
+      { n: "pai_cpf", r: "CPF", digitos: true, max: 14, ph: "000.000.000-00", mostrar: cpfBonito },
+      { n: "pai_rg", r: "RG e órgão emissor", max: 30, ph: "ex: 1234567-8 SSP/AM" },
+      { n: "pai_telefone", r: "Telefone", t: "tel", digitos: true, max: 20, ph: "(92) 99999-9999", mostrar: telefoneCampo },
       { n: "turma_id", r: "Turma", t: "select", num: true, largo: true, op: () => [["", "Sem turma"], ...turmasCache.map((t) => [String(t.id), rotuloTurma(t)])] },
       { n: "status", r: "Situação da matrícula", t: "select", op: STATUS_ALUNO, soEdicao: true },
       { n: "inicio", r: "Início da matrícula", t: "date", req: true },
@@ -188,6 +201,7 @@ const TABELAS = {
       { n: "nome", r: "Nome", max: 100, req: true },
       { n: "parentesco", r: "Parentesco", max: 40, ph: "ex: mãe, pai, avó" },
       { n: "cpf", r: "CPF", digitos: true, max: 14, ph: "000.000.000-00", mostrar: cpfBonito },
+      { n: "rg", r: "RG e órgão emissor", max: 30, ph: "ex: 1234567-8 SSP/AM" },
       { n: "telefone", r: "Telefone", t: "tel", digitos: true, max: 20, ph: "(92) 99999-9999", mostrar: telefoneCampo },
       { n: "email", r: "E-mail", t: "email", max: 120 },
       { n: "financeiro", r: "Responsável financeiro", t: "checkbox" }
@@ -630,8 +644,16 @@ function turmasPelaIdade(form, turmaAtual) {
     if (atual && !cabem.includes(atual) && atual.id === turmaAtual && nasc.value === (fichaAtual?.nascimento ?? "")) sel.add(new Option(`${rotuloTurma(atual)} (fora da faixa etária)`, atual.id));
     sel.value = [...sel.options].some((o) => o.value === escolhida) ? escolhida : "";
   };
-  nasc.addEventListener("input", montar);
+  const idadeTexto = Object.assign(document.createElement("small"), { className: "idade-calc" });
+  idadeTexto.setAttribute("aria-live", "polite");
+  nasc.closest("label").append(idadeTexto);
+  const mostrarIdade = () => {
+    const m = idadeEmMeses(nasc.value);
+    idadeTexto.textContent = m == null ? "" : `Idade: ${textoMeses(m)}`;
+  };
+  nasc.addEventListener("input", () => (montar(), mostrarIdade()));
   montar();
+  mostrarIdade();
 }
 
 function abrirFicha(aluno) {
