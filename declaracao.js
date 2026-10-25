@@ -54,7 +54,7 @@ async function montar() {
     nasc: (a.nascimento ? `, ${a.sexo === "M" ? "nascido" : a.sexo === "F" ? "nascida" : "nascido(a)"} em ${dataBr(a.nascimento)}` : "") + (a.cpf ? `, CPF ${esc(cpfBonito(a.cpf))}` : ""),
     filiacao: ((pais) => (pais.length ? `, ${a.sexo === "M" ? "filho" : a.sexo === "F" ? "filha" : "filho(a)"} de ${pais.map(esc).join(" e ")}` : ""))([a.nome_mae, a.nome_pai].filter((n) => n && !/^n[ãa]o declarado$/i.test(n.trim()))),
     escola: `${esc(e.escola_razao)} (Acqua Azul Natação), inscrita no CNPJ ${esc(e.escola_cnpj)}`,
-    turma: t ? `, na turma ${esc(t.nome)}, com aulas às ${esc(t.dias)}, ${esc(t.horario)}, na unidade ${esc(t.unidade)}` : "",
+    turma: t ? `, na turma ${esc(t.nome)}, com aulas ${esc(t.dias)}, às ${esc(t.horario)}, na unidade ${esc(t.unidade)}` : "",
     inicio: dataBr(a.inicio)
   };
   let corpo = `<p>${tipo.texto(d)}</p>`;
