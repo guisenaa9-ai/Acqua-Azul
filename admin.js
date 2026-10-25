@@ -6,8 +6,22 @@ const urlFoto = (caminho) => `${supabaseUrl}/storage/v1/object/public/fotos/${ca
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const STATUS = [["novo", "Novo"], ["em_contato", "Em contato"], ["agendado", "Aula agendada"], ["matriculou", "Matriculou"], ["desistiu", "Desistiu"]];
 let papel = null;
-const ABAS_RECEPCAO = ["resumo", "pedidos", "turmas"];
+const ABAS_RECEPCAO = ["resumo", "pedidos", "turmas", "alunos"];
 const telefoneBonito = (t) => (t.length >= 12 ? `(${t.slice(2, 4)}) ${t.slice(4, -4)}-${t.slice(-4)}` : t);
+const telefoneCampo = (t) => (t.length === 10 || t.length === 11 ? `(${t.slice(0, 2)}) ${t.slice(2, -4)}-${t.slice(-4)}` : telefoneBonito(t));
+const cpfBonito = (c) => (c.length === 11 ? `${c.slice(0, 3)}.${c.slice(3, 6)}.${c.slice(6, 9)}-${c.slice(9)}` : c);
+function cpfValido(c) {
+  if (!/^\d{11}$/.test(c) || /^(\d)\1{10}$/.test(c)) return false;
+  const dv = (n) => {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += Number(c[i]) * (n + 1 - i);
+    return ((s * 10) % 11) % 10;
+  };
+  return dv(9) === Number(c[9]) && dv(10) === Number(c[10]);
+}
+const STATUS_ALUNO = [["ativa", "Matrícula ativa"], ["trancada", "Trancada"], ["cancelada", "Cancelada"]];
+let turmasCache = [];
+const rotuloTurma = (t) => `${t.nome} – ${t.unidade} – ${t.dias} ${t.horario}`;
 
 // Campos de cada tabela editável. t: tipo do campo; r: rótulo.
 const TABELAS = {
@@ -94,6 +108,40 @@ const TABELAS = {
       { n: "ativo", r: "Aparece no site", t: "checkbox" }
     ]
   },
+  alunos: {
+    nome: (x) => `a ficha de ${x.nome}`,
+    aoCriar: (novo) => abrirFicha(novo),
+    aoSalvar: (d) => {
+      Object.assign(fichaAtual, d);
+      atualizarCabecalhoFicha(d);
+    },
+    aoApagar: () => voltarParaAlunos(),
+    campos: [
+      { n: "nome", r: "Nome do aluno", max: 100, req: true },
+      { n: "nascimento", r: "Data de nascimento", t: "date" },
+      { n: "turma_id", r: "Turma", t: "select", num: true, op: () => [["", "Sem turma"], ...turmasCache.map((t) => [String(t.id), rotuloTurma(t)])] },
+      { n: "status", r: "Situação da matrícula", t: "select", op: STATUS_ALUNO },
+      { n: "inicio", r: "Início da matrícula", t: "date", req: true },
+      { n: "plano", r: "Plano", max: 80, ph: "ex: 2x por semana" },
+      { n: "emergencia", r: "Contato de emergência", max: 150, ph: "Nome e telefone" },
+      { n: "endereco", r: "Endereço", t: "textarea", max: 300, largo: true },
+      { n: "observacoes", r: "Observações (ex.: alergias ou cuidados especiais, só se necessário)", t: "textarea", max: 1000, largo: true }
+    ]
+  },
+  responsaveis: {
+    fixos: ["aluno_id"],
+    nome: (x) => x.nome,
+    recarregar: () => carregarResponsaveis(fichaAtual.id),
+    validar: (x) => (x.cpf && !cpfValido(x.cpf) ? "CPF inválido. Confira os números." : x.telefone && !/^\d{10,13}$/.test(x.telefone) ? "Confira o telefone com DDD." : ""),
+    campos: [
+      { n: "nome", r: "Nome", max: 100, req: true },
+      { n: "parentesco", r: "Parentesco", max: 40, ph: "ex: mãe, pai, avó" },
+      { n: "cpf", r: "CPF", digitos: true, max: 14, ph: "000.000.000-00", mostrar: cpfBonito },
+      { n: "telefone", r: "Telefone", t: "tel", digitos: true, max: 20, ph: "(92) 99999-9999", mostrar: telefoneCampo },
+      { n: "email", r: "E-mail", t: "email", max: 120 },
+      { n: "financeiro", r: "Responsável financeiro", t: "checkbox" }
+    ]
+  },
   fotos: {
     ordem: [["ordem"], ["id"]],
     nome: (x) => x.legenda || "esta foto",
@@ -114,6 +162,10 @@ const TEXTOS = [
   { chave: "seguidores", r: "Seguidores no Instagram", ph: "ex: 23 mil", max: 30 },
   { chave: "horario", r: "Dias e horário de funcionamento", ph: "ex: Seg a Sáb, das 7h às 20h", max: 120 },
   { chave: "formas_pagamento", r: "Formas de pagamento", ph: "ex: Pix, cartão de crédito e boleto", max: 200 },
+  { chave: "escola_razao", r: "Documentos · Razão social da escola", max: 150 },
+  { chave: "escola_cnpj", r: "Documentos · CNPJ", max: 20, ph: "00.000.000/0000-00" },
+  { chave: "escola_endereco", r: "Documentos · Endereço da escola", max: 200 },
+  { chave: "escola_responsavel", r: "Documentos · Quem assina (nome e cargo)", max: 120, ph: "ex: Maria Silva – Diretora" },
   { chave: "end_cidade_nova", r: "Endereço da unidade Cidade Nova", t: "textarea", max: 200 },
   { chave: "end_campos_eliseos", r: "Endereço da unidade Campos Elíseos", t: "textarea", max: 200 }
 ];
@@ -124,7 +176,7 @@ function criarCampo(def, valor) {
   let input;
   if (def.t === "select") {
     input = document.createElement("select");
-    def.op.forEach((o) => (Array.isArray(o) ? input.add(new Option(o[1], o[0])) : input.add(new Option(o))));
+    (typeof def.op === "function" ? def.op() : def.op).forEach((o) => (Array.isArray(o) ? input.add(new Option(o[1], o[0])) : input.add(new Option(o))));
   } else if (def.t === "textarea") {
     input = document.createElement("textarea");
     input.rows = 3;
@@ -143,7 +195,7 @@ function criarCampo(def, valor) {
     label.className = "check";
     label.append(input, " " + def.r);
   } else {
-    input.value = valor ?? "";
+    input.value = def.mostrar && valor ? def.mostrar(valor) : (valor ?? "");
     label.append(def.r, input);
   }
   if (def.ajuda) {
@@ -161,6 +213,8 @@ function lerCampos(form, campos) {
     if (c.t === "checkbox") dados[c.n] = el.checked;
     else if (c.t === "number") dados[c.n] = Number(el.value) || 0;
     else if (c.t === "date") dados[c.n] = el.value || null;
+    else if (c.num) dados[c.n] = Number(el.value) || null;
+    else if (c.digitos) dados[c.n] = el.value.replace(/\D/g, "");
     else dados[c.n] = el.value.trim();
   }
   return dados;
@@ -229,14 +283,17 @@ function cartao(tabela, item) {
     const dados = lerCampos(form, cfg.campos);
     const invalido = cfg.validar?.(dados);
     if (invalido) return avisar(status, invalido);
-    const { error } = nova ? await sb.from(tabela).insert(dados) : await sb.from(tabela).update(dados).eq("id", item.id);
+    if (nova) cfg.fixos?.forEach((k) => (dados[k] = item[k]));
+    const { data: salvo, error } = nova ? await sb.from(tabela).insert(dados).select().single() : await sb.from(tabela).update(dados).eq("id", item.id);
     if (error) return avisar(status, "Não salvou. Confira os campos e tente de novo.");
     avisar(status, "Salvo!");
+    if (nova && cfg.aoCriar) return cfg.aoCriar(salvo);
+    cfg.aoSalvar?.(dados);
     if (dados.status) {
       form.dataset.status = dados.status;
       filtrarPedidos();
     }
-    if (nova) carregarLista(tabela);
+    if (nova) cfg.recarregar ? cfg.recarregar() : carregarLista(tabela);
   });
 
   form.addEventListener("click", async (e) => {
@@ -256,6 +313,7 @@ function cartao(tabela, item) {
       if (error) return avisar(status, "Não apagou. Tente de novo.");
       if (cfg.foto) await sb.storage.from("fotos").remove([item.caminho]);
       form.remove();
+      cfg.aoApagar?.(item);
     }
   });
   return form;
@@ -351,15 +409,16 @@ $("enviar-fotos").addEventListener("change", async (e) => {
 
 // Resumo
 async function carregarResumo() {
-  const [turmas, conteudo, marcos, avisos, fotos, novos] = await Promise.all([
+  const [turmas, conteudo, marcos, avisos, fotos, novos, ativos] = await Promise.all([
     sb.from("turmas").select("nome,unidade,dias,horario,vagas,total,ativa"),
     sb.from("conteudo").select("chave,valor"),
     sb.from("marcos").select("ano,titulo,texto"),
     sb.from("avisos").select("texto,ate,ativo").order("criado_em", { ascending: false }),
     sb.from("fotos").select("id,ativa"),
-    sb.from("pedidos").select("id", { count: "exact", head: true }).eq("status", "novo")
+    sb.from("pedidos").select("id", { count: "exact", head: true }).eq("status", "novo"),
+    sb.from("alunos").select("id", { count: "exact", head: true }).eq("status", "ativa")
   ]);
-  if ([turmas, conteudo, marcos, avisos, fotos, novos].some((r) => r.error)) {
+  if ([turmas, conteudo, marcos, avisos, fotos, novos, ativos].some((r) => r.error)) {
     $("resumo-numeros").textContent = "Não foi possível carregar o resumo. Recarregue a página.";
     return;
   }
@@ -369,6 +428,7 @@ async function carregarResumo() {
   const avisoVigente = avisos.data.find((a) => a.ativo && (!a.ate || a.ate >= hoje));
   const tiles = [
     [novos.count ?? 0, "pedidos novos para responder"],
+    [ativos.count ?? 0, "alunos com matrícula ativa"],
     [livres("Cidade Nova"), "vagas livres na Cidade Nova"],
     [livres("Campos Elíseos"), "vagas livres no Campos Elíseos"],
     [ativas.filter((t) => t.vagas === 0).length, "turmas cheias"],
@@ -391,6 +451,104 @@ async function carregarResumo() {
     bloco("Aviso no site", avisoVigente ? [`<li>${esc(avisoVigente.texto)}${avisoVigente.ate ? ` (até ${avisoVigente.ate.split("-").reverse().join("/")})` : ""}</li>`] : [], "Nenhum aviso no ar.") +
     bloco("Falta preencher", provisorios.map((p) => `<li>${esc(p)}</li>`), "Tudo preenchido!");
 }
+
+// Secretaria: lista de alunos e ficha
+let alunosCache = [];
+let fichaAtual = null;
+const idade = (nasc) => {
+  if (!nasc) return "";
+  const [a, m, d] = nasc.split("-").map(Number);
+  const hoje = new Date();
+  let anos = hoje.getFullYear() - a - (hoje.getMonth() + 1 < m || (hoje.getMonth() + 1 === m && hoje.getDate() < d) ? 1 : 0);
+  return anos < 1 ? "menos de 1 ano" : `${anos} ano${anos > 1 ? "s" : ""}`;
+};
+
+async function carregarAlunos() {
+  voltarParaAlunos();
+  const erro = tela("alunos").querySelector(".erro");
+  erro.textContent = "";
+  const [turmas, alunos] = await Promise.all([
+    sb.from("turmas").select("id,nome,unidade,dias,horario").order("ordem").order("id"),
+    sb.from("alunos").select("id,nome,nascimento,status,turma_id").order("nome")
+  ]);
+  if (turmas.error || alunos.error) return (erro.textContent = "Não foi possível carregar. Recarregue a página.");
+  turmasCache = turmas.data;
+  alunosCache = alunos.data;
+  listarAlunos();
+}
+
+function listarAlunos() {
+  const busca = $("busca-alunos").value.trim().toLowerCase();
+  const filtro = $("filtro-alunos").value;
+  const vis = alunosCache.filter((a) => (!filtro || a.status === filtro) && a.nome.toLowerCase().includes(busca));
+  const turma = (id) => turmasCache.find((t) => t.id === id);
+  const nomeStatus = Object.fromEntries(STATUS_ALUNO);
+  $("tabela-alunos").innerHTML = vis.length
+    ? vis.map((a) => `<button type="button" class="linha-aluno" data-id="${a.id}">
+        <span class="la-nome">${esc(a.nome)}<small>${esc(idade(a.nascimento))}</small></span>
+        <span class="la-turma">${turma(a.turma_id) ? esc(rotuloTurma(turma(a.turma_id))) : "Sem turma"}</span>
+        <span class="pilula ${a.status}">${nomeStatus[a.status]}</span>
+      </button>`).join("")
+    : `<p class="dica">${alunosCache.length ? "Nenhum aluno encontrado com esse filtro." : "Nenhum aluno cadastrado ainda. Toque em + Novo aluno."}</p>`;
+}
+$("busca-alunos").addEventListener("input", listarAlunos);
+$("filtro-alunos").addEventListener("change", listarAlunos);
+$("tabela-alunos").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-id]");
+  if (!b) return;
+  const { data, error } = await sb.from("alunos").select("*").eq("id", b.dataset.id).single();
+  if (error) return (tela("alunos").querySelector(".erro").textContent = "Não foi possível abrir a ficha.");
+  abrirFicha(data);
+});
+$("novo-aluno").addEventListener("click", () => abrirFicha({ status: "ativa", inicio: new Date().toLocaleDateString("sv-SE", { timeZone: "America/Manaus" }) }));
+$("voltar-alunos").addEventListener("click", carregarAlunos);
+
+function voltarParaAlunos() {
+  fichaAtual = null;
+  $("alunos-lista").hidden = false;
+  $("aluno-ficha").hidden = true;
+}
+
+function atualizarCabecalhoFicha(d) {
+  $("ficha-titulo").textContent = d.nome || "Novo aluno";
+  const salvo = Boolean(fichaAtual?.id);
+  const ativa = (d.status ?? fichaAtual?.status) === "ativa";
+  $("ficha-docs").hidden = !salvo;
+  document.querySelectorAll("[data-doc]").forEach((a) => {
+    a.href = `declaracao?aluno=${fichaAtual?.id}&tipo=${a.dataset.doc}`;
+    a.toggleAttribute("aria-disabled", !ativa);
+  });
+  $("docs-aviso").hidden = ativa;
+}
+
+function abrirFicha(aluno) {
+  fichaAtual = aluno;
+  $("alunos-lista").hidden = true;
+  $("aluno-ficha").hidden = false;
+  $("ficha-form").replaceChildren(cartao("alunos", aluno));
+  atualizarCabecalhoFicha(aluno);
+  $("ficha-responsaveis").hidden = !aluno.id;
+  if (aluno.id) carregarResponsaveis(aluno.id);
+  window.scrollTo(0, 0);
+}
+
+async function carregarResponsaveis(alunoId) {
+  const { data, error } = await sb.from("responsaveis").select("*").eq("aluno_id", alunoId).order("id");
+  if (error) return ($("lista-responsaveis").innerHTML = '<p class="erro">Não foi possível carregar os responsáveis.</p>');
+  $("lista-responsaveis").replaceChildren(...data.map((r) => cartao("responsaveis", r)));
+  if (!data.length) $("lista-responsaveis").innerHTML = '<p class="dica">Nenhum responsável cadastrado. Toque em + Adicionar responsável.</p>';
+}
+$("novo-responsavel").addEventListener("click", () => {
+  $("lista-responsaveis").querySelector(":scope > p.dica")?.remove();
+  const form = cartao("responsaveis", { aluno_id: fichaAtual.id });
+  $("lista-responsaveis").prepend(form);
+  form.elements.nome.focus();
+});
+document.querySelectorAll("[data-doc]").forEach((a) =>
+  a.addEventListener("click", (e) => {
+    if (a.hasAttribute("aria-disabled")) e.preventDefault();
+  })
+);
 
 // Navegação entre abas
 // Usuários do painel (só dono): criar conta exige a chave de serviço, então passa pela função "usuarios"
@@ -456,7 +614,7 @@ $("form-usuario").addEventListener("submit", async (e) => {
   }
 });
 
-const CARREGAR = { resumo: carregarResumo, pedidos: () => carregarLista("pedidos"), turmas: () => carregarLista("turmas"), textos: carregarTextos, marcos: () => carregarLista("marcos"), avisos: () => carregarLista("avisos"), fotos: () => carregarLista("fotos"), planos: () => carregarLista("planos"), depoimentos: () => carregarLista("depoimentos"), usuarios: carregarUsuarios };
+const CARREGAR = { resumo: carregarResumo, pedidos: () => carregarLista("pedidos"), turmas: () => carregarLista("turmas"), textos: carregarTextos, marcos: () => carregarLista("marcos"), avisos: () => carregarLista("avisos"), fotos: () => carregarLista("fotos"), planos: () => carregarLista("planos"), depoimentos: () => carregarLista("depoimentos"), usuarios: carregarUsuarios, alunos: carregarAlunos };
 const podeAbrir = (aba) => papel === "dono" || ABAS_RECEPCAO.includes(aba);
 
 function abrirAba(aba) {

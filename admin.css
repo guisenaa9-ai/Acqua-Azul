@@ -79,3 +79,25 @@
 .admin-cartao[data-status="novo"] { border-color: var(--sol); }
 .filtro { display: flex; align-items: center; gap: 8px; font-weight: 800; }
 .filtro select { font: inherit; font-weight: 600; padding: 8px 12px; border-radius: 10px; border: 2px solid #c9e3fb; min-height: 44px; background: #fff; }
+
+/* Secretaria */
+.filtros-alunos { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+.busca { display: flex; flex-direction: column; gap: 4px; font-weight: 800; flex: 1 1 260px; }
+.busca input { font: inherit; font-weight: 400; padding: 10px 12px; border-radius: 10px; border: 2px solid #c9e3fb; min-height: 44px; }
+.tabela-alunos { display: flex; flex-direction: column; gap: 8px; }
+.linha-aluno { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) auto; gap: 12px; align-items: center; width: 100%; padding: 14px 18px; border: 2px solid var(--espuma); border-radius: 14px; background: #fff; font: inherit; color: var(--texto); text-align: left; cursor: pointer; }
+.linha-aluno:hover { border-color: var(--raia); }
+.la-nome { font-weight: 800; color: var(--abismo); display: flex; flex-direction: column; }
+.la-nome small { font-weight: 600; color: var(--suave); }
+.la-turma { color: var(--suave); font-size: 14px; }
+.pilula { font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.pilula.ativa { background: #e3f6e8; color: #1d6b34; }
+.pilula.trancada { background: #fff4d6; color: #7a5300; }
+.pilula.cancelada { background: #fdecea; color: var(--alerta); }
+@media (max-width: 640px) { .linha-aluno { grid-template-columns: 1fr auto; } .la-turma { grid-column: 1 / -1; grid-row: 2; } }
+.voltar { border: 0; background: none; color: var(--mar); font: 800 15px "Nunito", sans-serif; cursor: pointer; padding: 8px 0; min-height: 44px; }
+.docs { display: flex; flex-wrap: wrap; gap: 8px; }
+.docs .btn { padding: 10px 18px; }
+.docs [aria-disabled] { opacity: .45; cursor: not-allowed; }
+#ficha-responsaveis { margin-top: 28px; }
+#ficha-responsaveis h2 { color: var(--abismo); font-size: 26px; }

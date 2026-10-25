@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Declaração · Acqua Azul</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="declaracao.css">
+</head>
+<body>
+<div class="barra-doc nao-imprimir">
+  <p id="dica-doc">Carregando…</p>
+  <button type="button" class="btn btn-sol" id="imprimir" hidden>Imprimir ou salvar em PDF</button>
+</div>
+<p class="aviso-doc nao-imprimir" id="aviso-doc" role="alert" hidden></p>
+
+<article class="folha" id="folha" hidden>
+  <div class="cabecalho">
+    <p class="marca">Acqua <span>Azul</span> Natação</p>
+    <p id="dados-escola"></p>
+  </div>
+  <h1 id="titulo-doc"></h1>
+  <div class="corpo" id="corpo" contenteditable="true" spellcheck="true"></div>
+  <p class="local" id="local-data"></p>
+  <div class="assinatura">
+    <span class="linha-assinatura"></span>
+    <p id="quem-assina"></p>
+  </div>
+</article>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="declaracao.js"></script>
+</body>
+</html>
